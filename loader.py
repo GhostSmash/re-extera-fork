@@ -83,6 +83,8 @@ def _localize(key):
         "channel_switch":  ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
         "up_to_date":      ("Уже последняя версия",  "Already up to date"),
         "file_not_found":  ("Файл не найден",        "File not found"),
+        "no_official_update": ("re:extera ещё не имеет официального обновления для этой версии, возможны баги.", 
+                               "re:extera doesn't have official update for this version, expect bugs."),
     }
     return strings[key][1 if not ru else 0]
 
@@ -361,7 +363,7 @@ class Loader:
             
             if not target_release:
                 self.plugin.log(f"No release found for Telegram version {tg_version}")
-                return None, None
+                return "UNSUPPORTED_VERSION", None
 
             tag = target_release.get("tag_name", "")
             assets = target_release.get("assets", [])
@@ -530,6 +532,11 @@ class Loader:
         def run_check():
             try:
                 remote_version, download_url = self._check_version()
+                if remote_version == "UNSUPPORTED_VERSION":
+                    def show_warn():
+                        BulletinHelper.show_info(_localize("no_official_update"), get_last_fragment())
+                    AndroidUtilities.runOnUIThread(UIRunnable(show_warn))
+                    return
                 if remote_version is None:
                     return
 
@@ -551,6 +558,11 @@ class Loader:
             def run_manual():
                 try:
                     remote_version, download_url = self._check_version(force=True)
+                    if remote_version == "UNSUPPORTED_VERSION":
+                        def show_warn():
+                            BulletinHelper.show_info(_localize("no_official_update"), get_last_fragment())
+                        AndroidUtilities.runOnUIThread(UIRunnable(show_warn))
+                        return
                     if remote_version is None:
                         err = self.config.data.get("last_error", "")
                         msg = f"Check failed: {err}" if err else "Failed to check updates"
