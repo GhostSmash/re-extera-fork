@@ -1,7 +1,7 @@
 # metadata
 __id__ = "re_extera_loader"
 __name__ = "aartzz's re:extera"
-__description__ = "Enable ghost mode, save deleted messages and more!"
+__description__ = "Actively maintained FOSS fork. Enable ghost mode, save deleted messages and more!"
 __author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad & @migor1103"
 __version__ = "2.5.0"
 __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
