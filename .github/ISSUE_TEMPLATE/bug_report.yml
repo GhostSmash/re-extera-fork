@@ -1,0 +1,54 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve re:extera
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for taking the time to report a bug!** 
+        To help us fix it faster, please provide as much information as possible.
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what went wrong...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: re:extera & Telegram Version
+      description: What version of the plugin and Telegram are you using? (e.g. plugin v1.7.7, TG v12.9.0)
+      placeholder: Plugin vX.X.X, Telegram vX.X.X
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash Logs (Logcat)
+      description: |
+        If the app crashes or misbehaves, please provide logs. You can easily capture logs via `adb logcat` from a PC, or directly from your phone using an app like [LogFox](https://github.com/F0x1d/LogFox).
+      placeholder: Paste your logs here...
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or Video
+      description: If applicable, add screenshots or a screen recording to help explain your problem.
+    validations:
+      required: false
