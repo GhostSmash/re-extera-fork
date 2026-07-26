@@ -188,7 +188,12 @@ public final class HookInit {
         try {
             Class<?> mainMenuHelperClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper");
             Class<?> menuContextClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper$MenuContext");
+            
+            // Hook 2-argument version
             tryHook("MainMenuHelper.addConfiguredItemOptions", mainMenuHelperClass, "addConfiguredItemOptions", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class, menuContextClass);
+            // Hook 3-argument version (used by MainTabsActivity)
+            tryHook("MainMenuHelper.addConfiguredItemOptions(IntPredicate)", mainMenuHelperClass, "addConfiguredItemOptions", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class, menuContextClass, java.util.function.IntPredicate.class);
+            
             tryHook("MainMenuHelper.addConfiguredItemOption", mainMenuHelperClass, "addConfiguredItemOption", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, menuContextClass, Integer.TYPE);
         } catch (ClassNotFoundException e) {
             Main.log("MainMenuHelper not found, using legacy DialogsActivity hooks only");

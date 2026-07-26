@@ -61,10 +61,12 @@ public class DialogsActivityHook extends XC_MethodHook {
 
     private void onBeforeAddItems() {
         if (ExteraConfig.getNavigationDrawer() || !GhostMenuHelper.isGhostMenuVisible()) {
+            Main.log("DialogsActivityHook: Not adding ghost menu items. NavigationDrawer=%s, isGhostMenuVisible=%s", ExteraConfig.getNavigationDrawer(), GhostMenuHelper.isGhostMenuVisible());
             GhostMenuHelper.scrubGhostFromConfig();
             return;
         }
         ArrayList<Integer> layoutWithGhost = GhostMenuHelper.withGhostMenuItem(ExteraConfig.getMainMenuLayout(), true);
+        Main.log("DialogsActivityHook: onBeforeAddItems layoutWithGhost contains 910001: %s", layoutWithGhost.contains(910001));
         ExteraConfig.getMainMenuLayout().clear();
         ExteraConfig.getMainMenuLayout().addAll(layoutWithGhost);
         ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate<Integer>() { 
@@ -107,12 +109,15 @@ public class DialogsActivityHook extends XC_MethodHook {
             }
         }
         
+        Main.log("DialogsActivityHook: onBeforeAddItem id=%d", id);
+        
         if (id != 910001) {
             return;
         }
         
         final ItemOptions io = (ItemOptions) param.args[0];
         boolean enabled = Settings.getGhostModeEnabledGlobal();
+        Main.log("DialogsActivityHook: onBeforeAddItem id 910001! enabled=%s", enabled);
         final BaseFragment finalFragment = fragment;
         
         io.add(R.drawable.ghost, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
