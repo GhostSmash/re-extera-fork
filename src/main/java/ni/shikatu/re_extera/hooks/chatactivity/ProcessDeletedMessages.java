@@ -17,23 +17,32 @@ public class ProcessDeletedMessages extends XC_MethodHook {
             final ChatActivity thisObject = (ChatActivity) param.thisObject;
             final long dialogId = thisObject.getDialogId();
 
-            // Capture and nullify param.args[0] defensively
             @SuppressWarnings("unchecked")
             final ArrayList<Integer> originalMessages =
                     param.args[0] instanceof java.util.Collection
                             ? new ArrayList<>((java.util.Collection<Integer>) param.args[0])
                             : new ArrayList<>();
 
-            ni.shikatu.re_extera.db.ReExteraDb.get().postToDbThread(new Runnable() {
-                @Override
-                public void run() {
-                    MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, originalMessages);
+            final ArrayList<Integer> validIds = new ArrayList<>();
+            final ArrayList<Integer> tempIds = new ArrayList<>();
+            for (Integer id : originalMessages) {
+                if (id != null && id > 0) {
+                    validIds.add(id);
+                } else if (id != null) {
+                    tempIds.add(id);
                 }
-            });
+            }
 
-            // Atomically drain the queue — avoids the race condition where another
-            // thread's addAll() interleaved with the old clear() on the ArrayList.
-            ArrayList<Integer> drained = new ArrayList<>();
+            if (!validIds.isEmpty()) {
+                ni.shikatu.re_extera.db.ReExteraDb.get().postToDbThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, validIds);
+                    }
+                });
+            }
+
+            ArrayList<Integer> drained = new ArrayList<>(tempIds);
             Integer id;
             while ((id = onRequestToDelete.poll()) != null) {
                 drained.add(id);
