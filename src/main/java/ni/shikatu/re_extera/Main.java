@@ -67,14 +67,20 @@ public final class Main {
         Context context = getApplicationContext();
         ReExteraDb.init(context);
         ShadowbanCache.init();
-        try {
-            MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
-        } catch (Throwable t) {
-            MeasureTime.deletedIcon = null;
+        
+        int deleteFilledId = context.getResources().getIdentifier("msg_delete_filled", "drawable", context.getPackageName());
+        if (deleteFilledId == 0) {
+            deleteFilledId = context.getResources().getIdentifier("msg_delete", "drawable", context.getPackageName());
         }
-        if (MeasureTime.deletedIcon == null) {
-            MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete);
+        
+        if (deleteFilledId != 0) {
+            try {
+                MeasureTime.deletedIcon = androidx.core.content.ContextCompat.getDrawable(context, deleteFilledId);
+            } catch (Throwable t) {
+                MeasureTime.deletedIcon = null;
+            }
         }
+        
         if (MeasureTime.deletedIcon != null) {
             MeasureTime.deletedIcon = MeasureTime.deletedIcon.mutate();
             MeasureTime.deletedIcon.setBounds(0, 0, MeasureTime.deletedIcon.getIntrinsicWidth(), MeasureTime.deletedIcon.getIntrinsicHeight());
