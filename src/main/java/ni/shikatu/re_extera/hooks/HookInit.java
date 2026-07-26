@@ -184,6 +184,15 @@ public final class HookInit {
         tryHook("DialogsActivity.getDialogsArray", DialogsActivity.class, "getDialogsArray", new GetDialogsArray(), Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE);
         tryHook("DialogsActivity.addMainMenuConfiguredItems", DialogsActivity.class, "addMainMenuConfiguredItems", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class);
         tryHook("DialogsActivity.addMainMenuConfiguredItem", DialogsActivity.class, "addMainMenuConfiguredItem", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, Integer.TYPE);
+        
+        try {
+            Class<?> mainMenuHelperClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper");
+            Class<?> menuContextClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper$MenuContext");
+            tryHook("MainMenuHelper.addConfiguredItemOptions", mainMenuHelperClass, "addConfiguredItemOptions", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class, menuContextClass);
+            tryHook("MainMenuHelper.addConfiguredItemOption", mainMenuHelperClass, "addConfiguredItemOption", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, menuContextClass, Integer.TYPE);
+        } catch (ClassNotFoundException e) {
+            Main.log("MainMenuHelper not found, using legacy DialogsActivity hooks only");
+        }
         tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
