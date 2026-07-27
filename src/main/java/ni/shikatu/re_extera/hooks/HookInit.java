@@ -218,6 +218,8 @@ public final class HookInit {
         
         tryHook("ChatMessageCell.setMessageObject", org.telegram.ui.Cells.ChatMessageCell.class, "setMessageObject", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessages(), MessageObject.class, MessageObject.GroupedMessages.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
         
+        tryHook("ConnectionsManager.setAppPaused", org.telegram.tgnet.ConnectionsManager.class, "setAppPaused", new ni.shikatu.re_extera.hooks.connectionsmanager.WorkInBackground(), Boolean.TYPE, Boolean.TYPE);
+        
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
         GhostMenuHelper.registerPluginMenuItem();

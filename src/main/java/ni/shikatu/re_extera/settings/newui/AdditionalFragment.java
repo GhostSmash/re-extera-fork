@@ -36,6 +36,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         IMPORT_DB_ID,
         DISABLE_ADS_ID,
         DISABLE_COLORED_REPLIES_ID,
+        WORK_IN_BACKGROUND_ID,
         UNLOAD_HOOKS;
 
         public int getId() {
@@ -60,6 +61,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB).setLinkAlias("reExteraImportDb", this));
         items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), "Отключить рекламу").setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
         items.add(UItem.asCheck(AdditionalIds.DISABLE_COLORED_REPLIES_ID.getId(), "Отключить цветные ответы").setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
+        items.add(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), "Работать в фоне").setChecked(Settings.getWorkInBackground()).setLinkAlias("reExteraWorkInBackground", this));
         items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
     }
 
@@ -109,8 +111,12 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             } catch (NoSuchFieldError e10) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.UNLOAD_HOOKS.ordinal()] = 11;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.WORK_IN_BACKGROUND_ID.ordinal()] = 11;
             } catch (NoSuchFieldError e11) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.UNLOAD_HOOKS.ordinal()] = 12;
+            } catch (NoSuchFieldError e12) {
             }
         }
     }
@@ -161,6 +167,10 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 refreshCheckBox(item, position, Settings.getDisableColoredReplies());
                 break;
             case 11:
+                Settings.setWorkInBackground(!Settings.getWorkInBackground());
+                refreshCheckBox(item, position, Settings.getWorkInBackground());
+                break;
+            case 12:
                 Main.getInstance().onUnload();
                 BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;

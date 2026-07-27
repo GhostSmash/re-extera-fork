@@ -332,6 +332,14 @@ public final class Settings {
         putBool("re_extera_transparent_deleted_messages", z);
     }
 
+    public static boolean getWorkInBackground() {
+        return getBool("re_extera_work_in_background", false);
+    }
+
+    public static void setWorkInBackground(boolean z) {
+        putBool("re_extera_work_in_background", z);
+    }
+
     public static boolean getGhostInMainMenu() {
         return getBool("ghost_in_main_menu", false);
     }
