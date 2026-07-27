@@ -308,6 +308,22 @@ public final class Settings {
         putBool("local_premium", v);
     }
 
+    public static boolean getDisableAds() {
+        return getBool("disable_ads", false);
+    }
+
+    public static void setDisableAds(boolean v) {
+        putBool("disable_ads", v);
+    }
+
+    public static boolean getDisableColoredReplies() {
+        return getBool("disable_colored_replies", false);
+    }
+
+    public static void setDisableColoredReplies(boolean v) {
+        putBool("disable_colored_replies", v);
+    }
+
     public static boolean getGhostInMainMenu() {
         return getBool("ghost_in_main_menu", false);
     }

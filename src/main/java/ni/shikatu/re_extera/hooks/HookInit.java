@@ -57,6 +57,7 @@ import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
 import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
@@ -208,6 +209,13 @@ public final class HookInit {
             Main.log("MainMenuHelper not found, using legacy DialogsActivity hooks only");
         }
         tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
+        tryHook("MessagesController.getSponsoredMessages", MessagesController.class, "getSponsoredMessages", new ni.shikatu.re_extera.hooks.messagescontroller.DisableAds(), Long.TYPE);
+        
+        tryHook("UserObject.getColorId", org.telegram.messenger.UserObject.class, "getColorId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.UserColorId(), TLRPC.User.class);
+        tryHook("UserObject.getEmojiId", org.telegram.messenger.UserObject.class, "getEmojiId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.UserEmojiId(), TLRPC.User.class);
+        tryHook("ChatObject.getColorId", org.telegram.messenger.ChatObject.class, "getColorId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.ChatColorId(), TLRPC.Chat.class);
+        tryHook("ChatObject.getEmojiId", org.telegram.messenger.ChatObject.class, "getEmojiId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.ChatEmojiId(), TLRPC.Chat.class);
+        
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
         GhostMenuHelper.registerPluginMenuItem();

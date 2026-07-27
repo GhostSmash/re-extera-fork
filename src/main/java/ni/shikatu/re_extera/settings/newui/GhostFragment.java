@@ -143,7 +143,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             case 8:
                 presentFragment(new ExclusionsFragment());
                 break;
-            case ReExteraDb.DB_VERSION /* 9 */:
+            case 9:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {

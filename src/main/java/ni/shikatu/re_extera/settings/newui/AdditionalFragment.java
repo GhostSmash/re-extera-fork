@@ -34,6 +34,8 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         CLEAR_DB_ID,
         EXPORT_DB_ID,
         IMPORT_DB_ID,
+        DISABLE_ADS_ID,
+        DISABLE_COLORED_REPLIES_ID,
         UNLOAD_HOOKS;
 
         public int getId() {
@@ -56,6 +58,8 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB).setLinkAlias("reExteraClearDb", this));
         items.add(UItem.asButton(AdditionalIds.EXPORT_DB_ID.getId(), Localization.EXPORT_DB).setLinkAlias("reExteraExportDb", this));
         items.add(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB).setLinkAlias("reExteraImportDb", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), "Отключить рекламу").setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_COLORED_REPLIES_ID.getId(), "Отключить цветные ответы").setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
         items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
     }
 
@@ -97,8 +101,16 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             } catch (NoSuchFieldError e8) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.UNLOAD_HOOKS.ordinal()] = 9;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.DISABLE_ADS_ID.ordinal()] = 9;
             } catch (NoSuchFieldError e9) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.DISABLE_COLORED_REPLIES_ID.ordinal()] = 10;
+            } catch (NoSuchFieldError e10) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.UNLOAD_HOOKS.ordinal()] = 11;
+            } catch (NoSuchFieldError e11) {
             }
         }
     }
@@ -141,6 +153,14 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 importDb();
                 break;
             case 9:
+                Settings.setDisableAds(!Settings.getDisableAds());
+                refreshCheckBox(item, position, Settings.getDisableAds());
+                break;
+            case 10:
+                Settings.setDisableColoredReplies(!Settings.getDisableColoredReplies());
+                refreshCheckBox(item, position, Settings.getDisableColoredReplies());
+                break;
+            case 11:
                 Main.getInstance().onUnload();
                 BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;

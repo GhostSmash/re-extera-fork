@@ -6,6 +6,8 @@ import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.tgnet.TLRPC;
 
 public class FormatUserStatus extends XC_MethodHook {
+    private static final ThreadLocal<TLRPC.UserStatus> origStatusLocal = new ThreadLocal<>();
+
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (!Settings.getSaveLastOnline()) {
             return;
@@ -24,8 +26,8 @@ public class FormatUserStatus extends XC_MethodHook {
             int wasOnline = ReExteraDb.get().getLastOnline(user.id);
             if (wasOnline > 0) {
                 TLRPC.TL_userStatusOffline exactStatus = new TLRPC.TL_userStatusOffline();
-                exactStatus.was_online = wasOnline;
-                param.setObjectExtra("orig_status", user.status);
+                exactStatus.expires = wasOnline;
+                origStatusLocal.set(user.status);
                 user.status = exactStatus;
             }
         }
@@ -39,9 +41,10 @@ public class FormatUserStatus extends XC_MethodHook {
         if (user == null) {
             return;
         }
-        TLRPC.UserStatus origStatus = (TLRPC.UserStatus) param.getObjectExtra("orig_status");
+        TLRPC.UserStatus origStatus = origStatusLocal.get();
         if (origStatus != null) {
             user.status = origStatus; // restore original status
+            origStatusLocal.remove();
             String res = (String) param.getResult();
             if (res != null) {
                 param.setResult(res); // you could append a mark here if needed, but keeping it clean for now
