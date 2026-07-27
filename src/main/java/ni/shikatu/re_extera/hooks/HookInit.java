@@ -216,6 +216,8 @@ public final class HookInit {
         tryHook("ChatObject.getColorId", org.telegram.messenger.ChatObject.class, "getColorId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.ChatColorId(), TLRPC.Chat.class);
         tryHook("ChatObject.getEmojiId", org.telegram.messenger.ChatObject.class, "getEmojiId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.ChatEmojiId(), TLRPC.Chat.class);
         
+        tryHook("ChatMessageCell.setMessageObject", org.telegram.ui.Cells.ChatMessageCell.class, "setMessageObject", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessages(), MessageObject.class, MessageObject.GroupedMessages.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
+        
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
         GhostMenuHelper.registerPluginMenuItem();

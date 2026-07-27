@@ -320,8 +320,16 @@ public final class Settings {
         return getBool("disable_colored_replies", false);
     }
 
-    public static void setDisableColoredReplies(boolean v) {
-        putBool("disable_colored_replies", v);
+    public static void setDisableColoredReplies(boolean z) {
+        putBool("re_extera_disable_colored_replies", z);
+    }
+
+    public static boolean getTransparentDeletedMessages() {
+        return getBool("re_extera_transparent_deleted_messages", false);
+    }
+
+    public static void setTransparentDeletedMessages(boolean z) {
+        putBool("re_extera_transparent_deleted_messages", z);
     }
 
     public static boolean getGhostInMainMenu() {

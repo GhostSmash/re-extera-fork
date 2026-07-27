@@ -32,6 +32,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         SAVE_LAST_ONLINE_ID,
         SAVE_ONE_TIME_MESSAGES_ID,
         SAVE_MESSAGE_HISTORY_ID,
+        TRANSPARENT_DELETED_MESSAGES_ID,
         RED_DELETED_MARK_ID,
         CUSTOM_DELETED_MARK_ID;
 
@@ -74,6 +75,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
+        items.add(UItem.asCheck(DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), "Полупрозрачные удалёнки").setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
         items.add(UItem.asShadow());
         items.add(UItem.asCheck(DeletedAndEditedIds.RED_DELETED_MARK_ID.getId(), Localization.RED_DELETED_MARK).setChecked(Settings.getRedMark()).setLinkAlias("reExteraRedDeletedMark", this));
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
@@ -111,6 +113,10 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
             case 7:
+                Settings.setTransparentDeletedMessages(!Settings.getTransparentDeletedMessages());
+                refreshCheckBox(item, position, Settings.getTransparentDeletedMessages());
+                break;
+            case 8:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;
@@ -147,8 +153,12 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             } catch (NoSuchFieldError e3) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 7;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.ordinal()] = 7;
             } catch (NoSuchFieldError e4) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 8;
+            } catch (NoSuchFieldError e5) {
             }
         }
     }
