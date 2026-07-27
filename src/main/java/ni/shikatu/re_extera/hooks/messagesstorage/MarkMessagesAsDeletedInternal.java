@@ -19,6 +19,14 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
         if (Settings.getSaveDeletedMessages()) {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
             long did = ((Long) param.args[0]).longValue();
+            
+            if (!Settings.getSaveBotChats()) {
+                org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.MessagesController.getInstance(currentAccount).getUser(did);
+                if (user != null && user.bot) {
+                    return;
+                }
+            }
+            
             ArrayList<Integer> originalMessages = (ArrayList) param.args[1];
             
             ArrayList<Integer> validIds = new ArrayList<>();

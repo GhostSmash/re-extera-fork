@@ -22,6 +22,14 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
             long uid = ((Long) param.args[0]).longValue();
             long channelId = ((Long) param.args[1]).longValue();
             long did = channelId != 0 ? -channelId : uid;
+            
+            if (!Settings.getSaveBotChats()) {
+                org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.MessagesController.getInstance(currentAccount).getUser(did);
+                if (user != null && user.bot) {
+                    return;
+                }
+            }
+            
             ArrayList<Integer> ids = (ArrayList) param.args[2];
             if (ids == null || ids.isEmpty()) {
                 return;

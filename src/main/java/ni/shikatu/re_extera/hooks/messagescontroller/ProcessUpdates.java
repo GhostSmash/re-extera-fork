@@ -104,7 +104,7 @@ public class ProcessUpdates extends XC_MethodHook {
         if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus)) {
             org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) update;
             if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
-                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, statusUpdate.status.was_online);
+                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, ((TLRPC.TL_userStatusOffline) statusUpdate.status).expires);
             } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
                 ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
             }
@@ -145,6 +145,12 @@ public class ProcessUpdates extends XC_MethodHook {
 
     private void processEditedMessage(TLRPC.Message message, int currentAccount) {
         long did = MessageUtils.getDialogIdFromMessage(message);
+        if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
+            org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.MessagesController.getInstance(currentAccount).getUser(did);
+            if (user != null && user.bot) {
+                return;
+            }
+        }
         MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
         if (oldObj != null && !oldObj.isOut()) {
             if (!this.redb.messageHasSavedEdits(did, message.id)) {
@@ -170,6 +176,12 @@ public class ProcessUpdates extends XC_MethodHook {
                         continue;
                     }
                     long did = obj.getDialogId();
+                    if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
+                        org.telegram.tgnet.TLRPC.User user = controller.getUser(did);
+                        if (user != null && user.bot) {
+                            continue;
+                        }
+                    }
                     ArrayList<Integer> list = (ArrayList) toUpdateGrouped.get(did);
                     if (list == null) {
                         list = new ArrayList<>();
