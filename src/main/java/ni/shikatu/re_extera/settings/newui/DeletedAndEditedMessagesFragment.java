@@ -32,6 +32,8 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         SAVE_LAST_ONLINE_ID,
         SAVE_ONE_TIME_MESSAGES_ID,
         SAVE_MESSAGE_HISTORY_ID,
+        SAVE_ATTACHMENTS_ID,
+        SAVE_ATTACHMENTS_SIZE_ID,
         TRANSPARENT_DELETED_MESSAGES_ID,
         RED_DELETED_MARK_ID,
         CUSTOM_DELETED_MARK_ID;
@@ -75,6 +77,14 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
+        items.add(UItem.asShadow());
+        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), "Сохранять вложения").setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
+        
+        long size = Settings.getAttachmentsMaxSize();
+        String sizeStr = size == 0 ? "Безлимит" : AndroidUtilities.formatFileSize(size);
+        items.add(UItem.asButton(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), "Максимальный размер папки", sizeStr).setLinkAlias("reExteraSaveAttachmentsSize", this));
+        items.add(UItem.asShadow("Удаленные медиа будут сохраняться в Downloads/ReExteraAttachments. Старые файлы будут удаляться при превышении лимита."));
+
         items.add(UItem.asCheck(DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), "Полупрозрачные удалёнки").setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
         items.add(UItem.asShadow());
         items.add(UItem.asCheck(DeletedAndEditedIds.RED_DELETED_MARK_ID.getId(), Localization.RED_DELETED_MARK).setChecked(Settings.getRedMark()).setLinkAlias("reExteraRedDeletedMark", this));
@@ -113,10 +123,17 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
             case 7:
+                Settings.setSaveAttachments(!Settings.getSaveAttachments());
+                refreshCheckBox(item, position, Settings.getSaveAttachments());
+                break;
+            case 8:
+                showAttachmentsSizeDialog();
+                break;
+            case 9:
                 Settings.setTransparentDeletedMessages(!Settings.getTransparentDeletedMessages());
                 refreshCheckBox(item, position, Settings.getTransparentDeletedMessages());
                 break;
-            case 8:
+            case 10:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;
@@ -153,12 +170,20 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             } catch (NoSuchFieldError e3) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.ordinal()] = 7;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.ordinal()] = 7;
             } catch (NoSuchFieldError e4) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 8;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.ordinal()] = 8;
             } catch (NoSuchFieldError e5) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.ordinal()] = 9;
+            } catch (NoSuchFieldError e6) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 10;
+            } catch (NoSuchFieldError e7) {
             }
         }
     }
@@ -254,5 +279,41 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
     static /* synthetic */ void lambda$showAdditionalDeleted$3(TextCheckCell useExpandableBlockQuote, View v1) {
         Settings.setUseExpandableBlockQuote(!Settings.getUseExpandableBlockQuote());
         useExpandableBlockQuote.setChecked(Settings.getUseExpandableBlockQuote());
+    }
+
+    private void showAttachmentsSizeDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Максимальный размер папки");
+        final long[] sizes = new long[]{
+            100L * 1024 * 1024,
+            500L * 1024 * 1024,
+            1024L * 1024 * 1024,
+            2L * 1024 * 1024 * 1024,
+            5L * 1024 * 1024 * 1024,
+            0L // Infinite
+        };
+        CharSequence[] items = new CharSequence[]{
+            "100 MB",
+            "500 MB",
+            "1 GB",
+            "2 GB",
+            "5 GB",
+            "Безлимит"
+        };
+        builder.setItems(items, new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialogInterface, int i) {
+                Settings.setAttachmentsMaxSize(sizes[i]);
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (listView != null && listView.adapter != null) {
+                            listView.adapter.update(true);
+                        }
+                    }
+                });
+            }
+        });
+        builder.show();
     }
 }

@@ -44,6 +44,9 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
             if (!validIds.isEmpty()) {
                 this.redb.lambda$batchPutDeletedMessagesAsync$1(did, validIds);
                 MessageUtils.forceUpdateViews(currentAccount, did, validIds);
+                if (Settings.getSaveAttachments()) {
+                    ni.shikatu.re_extera.utils.AttachmentSaver.saveAttachments(currentAccount, did, validIds);
+                }
             }
             
             param.args[1] = tempIds;

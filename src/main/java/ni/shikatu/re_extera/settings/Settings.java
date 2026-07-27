@@ -54,6 +54,10 @@ public final class Settings {
         return prefs().getInt(key, def);
     }
 
+    private static long getLong(String key, long def) {
+        return prefs().getLong(key, def);
+    }
+
     private static String getString(String key, String def) {
         return prefs().getString(key, def);
     }
@@ -64,6 +68,10 @@ public final class Settings {
 
     private static void putInt(String key, int value) {
         prefs().edit().putInt(key, value).apply();
+    }
+
+    private static void putLong(String key, long value) {
+        prefs().edit().putLong(key, value).apply();
     }
 
     private static void putString(String key, String value) {
@@ -338,6 +346,22 @@ public final class Settings {
 
     public static void setWorkInBackground(boolean z) {
         putBool("re_extera_work_in_background", z);
+    }
+
+    public static boolean getSaveAttachments() {
+        return getBool("re_extera_save_attachments", false);
+    }
+
+    public static void setSaveAttachments(boolean z) {
+        putBool("re_extera_save_attachments", z);
+    }
+
+    public static long getAttachmentsMaxSize() {
+        return getLong("re_extera_attachments_max_size", 500L * 1024 * 1024); // 500 MB default
+    }
+
+    public static void setAttachmentsMaxSize(long size) {
+        putLong("re_extera_attachments_max_size", size);
     }
 
     public static boolean getGhostInMainMenu() {
