@@ -11,13 +11,37 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+            if ("deleteMessagesRange".equals(ste.getMethodName())) {
+                return;
+            }
+        }
         if (Settings.getSaveDeletedMessages()) {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
             long did = ((Long) param.args[0]).longValue();
             ArrayList<Integer> originalMessages = (ArrayList) param.args[1];
-            this.redb.lambda$batchPutDeletedMessagesAsync$1(did, originalMessages);
-            MessageUtils.forceUpdateViews(currentAccount, did, originalMessages);
-            param.setResult((Object) null);
+            
+            ArrayList<Integer> validIds = new ArrayList<>();
+            ArrayList<Integer> tempIds = new ArrayList<>();
+            if (originalMessages != null) {
+                for (Integer id : originalMessages) {
+                    if (id != null && id > 0) {
+                        validIds.add(id);
+                    } else if (id != null) {
+                        tempIds.add(id);
+                    }
+                }
+            }
+
+            if (!validIds.isEmpty()) {
+                this.redb.lambda$batchPutDeletedMessagesAsync$1(did, validIds);
+                MessageUtils.forceUpdateViews(currentAccount, did, validIds);
+            }
+            
+            param.args[1] = tempIds;
+            if (tempIds.isEmpty()) {
+                param.setResult((Object) null);
+            }
         }
     }
 }

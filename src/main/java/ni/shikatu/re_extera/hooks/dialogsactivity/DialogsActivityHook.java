@@ -4,7 +4,9 @@ import com.exteragram.messenger.ExteraConfig;
 import de.robv.android.xposed.XC_MethodHook;
 import java.util.ArrayList;
 import java.util.function.Predicate;
+import java.lang.reflect.Method;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
@@ -43,7 +45,7 @@ public class DialogsActivityHook extends XC_MethodHook {
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode[this.mode.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
-                onBeforeAddItems();
+                onBeforeAddItems(param);
                 break;
             case 2:
                 onBeforeAddItem(param);
@@ -57,18 +59,30 @@ public class DialogsActivityHook extends XC_MethodHook {
         }
     }
 
-    private void onBeforeAddItems() {
-        if (ExteraConfig.getNavigationDrawer() || !GhostMenuHelper.isGhostMenuVisible()) {
+    private void onBeforeAddItems(XC_MethodHook.MethodHookParam param) {
+        if (param != null && param.args != null && param.args.length == 3 && param.args[2] instanceof java.util.function.IntPredicate) {
+            final java.util.function.IntPredicate original = (java.util.function.IntPredicate) param.args[2];
+            param.args[2] = new java.util.function.IntPredicate() {
+                @Override
+                public boolean test(int value) {
+                    if (value == 910001) return false;
+                    return original != null && original.test(value);
+                }
+            };
+        }
+        if (!GhostMenuHelper.isGhostMenuVisible()) {
+            Main.log("DialogsActivityHook: Not adding ghost menu items. isGhostMenuVisible=%s", GhostMenuHelper.isGhostMenuVisible());
             GhostMenuHelper.scrubGhostFromConfig();
             return;
         }
         ArrayList<Integer> layoutWithGhost = GhostMenuHelper.withGhostMenuItem(ExteraConfig.getMainMenuLayout(), true);
+        Main.log("DialogsActivityHook: onBeforeAddItems layoutWithGhost contains 910001: %s", layoutWithGhost.contains(910001));
         ExteraConfig.getMainMenuLayout().clear();
         ExteraConfig.getMainMenuLayout().addAll(layoutWithGhost);
-        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { 
+        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate<Integer>() { 
             @Override // java.util.function.Predicate
-            public final boolean test(Object obj) {
-                return DialogsActivityHook.lambda$onBeforeAddItems$0((Integer) obj);
+            public final boolean test(Integer obj) {
+                return DialogsActivityHook.lambda$onBeforeAddItems$0(obj);
             }
         });
     }
@@ -78,26 +92,53 @@ public class DialogsActivityHook extends XC_MethodHook {
     }
 
     private void onBeforeAddItem(final XC_MethodHook.MethodHookParam param) {
-        if (ExteraConfig.getNavigationDrawer()) {
-            return;
+        
+        int id = -1;
+        BaseFragment fragment = null;
+
+        if (param.args.length == 2 && param.args[1] instanceof Integer) {
+            // DialogsActivity.addMainMenuConfiguredItem(ItemOptions, int)
+            id = ((Integer) param.args[1]).intValue();
+            if (param.thisObject instanceof BaseFragment) {
+                fragment = (BaseFragment) param.thisObject;
+            }
+        } else if (param.args.length == 3 && param.args[2] instanceof Integer) {
+            // MainMenuHelper.addConfiguredItemOption(ItemOptions, MenuContext, int)
+            id = ((Integer) param.args[2]).intValue();
+            Object menuContext = param.args[1];
+            if (menuContext != null) {
+                try {
+                    Method fragmentMethod = menuContext.getClass().getMethod("fragment");
+                    fragment = (BaseFragment) fragmentMethod.invoke(menuContext);
+                } catch (Exception e) {
+                    Main.log("Failed to extract fragment from MenuContext: " + e.getMessage());
+                }
+            }
         }
-        int id = ((Integer) param.args[1]).intValue();
+        
+        Main.log("DialogsActivityHook: onBeforeAddItem id=%d", id);
+        
         if (id != 910001) {
             return;
         }
+        
         final ItemOptions io = (ItemOptions) param.args[0];
         boolean enabled = Settings.getGhostModeEnabledGlobal();
+        Main.log("DialogsActivityHook: onBeforeAddItem id 910001! enabled=%s", enabled);
+        final BaseFragment finalFragment = fragment;
+        
         io.add(R.drawable.ghost, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                DialogsActivityHook.lambda$onBeforeAddItem$1(io, param);
+                DialogsActivityHook.lambda$onBeforeAddItem$1(io, finalFragment);
             }
         });
         param.setResult(true);
     }
 
-    static /* synthetic */ void lambda$onBeforeAddItem$1(ItemOptions io, XC_MethodHook.MethodHookParam param) {
+    static /* synthetic */ void lambda$onBeforeAddItem$1(ItemOptions io, BaseFragment fragment) {
         io.dismiss();
-        GhostMenuHelper.toggleGhostMode((BaseFragment) param.thisObject);
+        GhostMenuHelper.toggleGhostMode(fragment);
     }
 }
+

@@ -148,8 +148,16 @@ public final class HookInit {
         tryHook("MessagesController.sortDialogs", MessagesController.class, "sortDialogs", new SortDialogsHook(), LongSparseArray.class);
         tryHook("MessagesController.processLoadedDialogs", MessagesController.class, "processLoadedDialogs", new ProcessLoadedDialogs(), TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("SecretVoicePlayer.dismiss", SecretVoicePlayer.class, "dismiss", new SecretVoicePlayerDismiss(), new Class[0]);
+        // Telegram 12.9.0 changed method signatures and obfuscated internal methods.
+        // markMessagesAsDeleted: (long, ArrayList, boolean, boolean, int, int)
+        tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+        // Fallbacks for older Telegram versions
         tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
+
+        // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
+        // Fallbacks for older Telegram versions
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessages_old", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
@@ -185,6 +193,20 @@ public final class HookInit {
         tryHook("DialogsActivity.getDialogsArray", DialogsActivity.class, "getDialogsArray", new GetDialogsArray(), Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE);
         tryHook("DialogsActivity.addMainMenuConfiguredItems", DialogsActivity.class, "addMainMenuConfiguredItems", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class);
         tryHook("DialogsActivity.addMainMenuConfiguredItem", DialogsActivity.class, "addMainMenuConfiguredItem", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, Integer.TYPE);
+        
+        try {
+            Class<?> mainMenuHelperClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper");
+            Class<?> menuContextClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper$MenuContext");
+            
+            // Hook 2-argument version
+            tryHook("MainMenuHelper.addConfiguredItemOptions", mainMenuHelperClass, "addConfiguredItemOptions", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class, menuContextClass);
+            // Hook 3-argument version (used by MainTabsActivity)
+            tryHook("MainMenuHelper.addConfiguredItemOptions(IntPredicate)", mainMenuHelperClass, "addConfiguredItemOptions", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class, menuContextClass, java.util.function.IntPredicate.class);
+            
+            tryHook("MainMenuHelper.addConfiguredItemOption", mainMenuHelperClass, "addConfiguredItemOption", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, menuContextClass, Integer.TYPE);
+        } catch (ClassNotFoundException e) {
+            Main.log("MainMenuHelper not found, using legacy DialogsActivity hooks only");
+        }
         tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);

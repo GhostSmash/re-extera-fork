@@ -21,14 +21,15 @@ import org.telegram.ui.Components.ColoredImageSpan;
 public class MeasureTime extends XC_MethodHook {
     public static Drawable deletedIcon;
     private final ReExteraDb redb = ReExteraDb.get();
-    private static final Field CURRENT_TIME_STRING = field("currentTimeString");
-    private static final Field TIME_TEXT_WIDTH = field("timeTextWidth");
-    private static final Field TIME_WIDTH = field("timeWidth");
+    private static final Field CURRENT_TIME_STRING = field(ChatMessageCell.class, "currentTimeString");
+    private static final Field TIME_TEXT_WIDTH = field(ChatMessageCell.class, "timeTextWidth");
+    private static final Field TIME_WIDTH = field(ChatMessageCell.class, "timeWidth");
+    private static final Field CHAT_TIME_PAINT = field(Theme.class, "chat_timePaint");
     public static String mark = Settings.getCustomPrefix();
 
-    private static Field field(String name) {
+    private static Field field(Class<?> clazz, String name) {
         try {
-            Field f = ChatMessageCell.class.getDeclaredField(name);
+            Field f = clazz.getDeclaredField(name);
             f.setAccessible(true);
             return f;
         } catch (Exception e) {
@@ -58,11 +59,25 @@ public class MeasureTime extends XC_MethodHook {
         int mid = message.id;
         if (this.redb.messageIsDeleted(did, mid)) {
             CharSequence currentTimeString = (CharSequence) ReflectionUtils.get(CURRENT_TIME_STRING, cell);
-            if (!(currentTimeString instanceof SpannableStringBuilder)) {
+            if (currentTimeString == null) {
                 return;
             }
-            SpannableStringBuilder builderTime = (SpannableStringBuilder) currentTimeString;
-            TextPaint paint = Theme.chat_timePaint;
+            SpannableStringBuilder builderTime;
+            if (currentTimeString instanceof SpannableStringBuilder) {
+                builderTime = (SpannableStringBuilder) currentTimeString;
+            } else {
+                builderTime = new SpannableStringBuilder(currentTimeString);
+            }
+            
+            TextPaint paint = null;
+            if (CHAT_TIME_PAINT != null) {
+                try {
+                    paint = (TextPaint) CHAT_TIME_PAINT.get(null);
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
+            
             if (paint == null || (prefix = buildPrefix(cell, paint)) == null) {
                 return;
             }

@@ -1,9 +1,9 @@
 # metadata
 __id__ = "re_extera_loader"
 __name__ = "aartzz's re:extera"
-__description__ = "Enable ghost mode, save deleted messages and more!"
+__description__ = "Actively maintained FOSS fork. Enable ghost mode, save deleted messages and more!"
 __author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad & @migor1103"
-__version__ = "2.5.0"
+__version__ = "2.7.0"
 __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
 __min_version__ = "12.8.1"
 
@@ -83,6 +83,10 @@ def _localize(key):
         "channel_switch":  ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
         "up_to_date":      ("Уже последняя версия",  "Already up to date"),
         "file_not_found":  ("Файл не найден",        "File not found"),
+        "no_official_update": ("re:extera ещё не имеет официального обновления для этой версии, возможны баги.", 
+                               "re:extera doesn't have official update for this version, expect bugs."),
+        "copy_logs":       ("Скопировать логи",      "Copy logs"),
+        "logs_copied":     ("Логи скопированы в буфер обмена", "Logs copied to clipboard"),
     }
     return strings[key][1 if not ru else 0]
 
@@ -242,6 +246,15 @@ class Loader:
             self.plugin.log("Called initAndStart")
         except Exception as e:
             self.plugin.log(f"initAndStart failed: {e}")
+            try:
+                # Fallback for older DEX versions
+                get_instance = clazz.getMethod("getInstance")
+                instance = get_instance.invoke(None)
+                start_method = clazz.getMethod("start")
+                start_method.invoke(instance)
+                self.plugin.log("Called start() via getInstance() fallback")
+            except Exception as e2:
+                self.plugin.log(f"Fallback start failed: {e2}")
 
     def start_from_bytes(self, bytesdex):
         cache_dir = self.cache_dir
@@ -361,7 +374,7 @@ class Loader:
             
             if not target_release:
                 self.plugin.log(f"No release found for Telegram version {tg_version}")
-                return None, None
+                return "UNSUPPORTED_VERSION", None
 
             tag = target_release.get("tag_name", "")
             assets = target_release.get("assets", [])
@@ -530,6 +543,11 @@ class Loader:
         def run_check():
             try:
                 remote_version, download_url = self._check_version()
+                if remote_version == "UNSUPPORTED_VERSION":
+                    def show_warn():
+                        BulletinHelper.show_info(_localize("no_official_update"), get_last_fragment())
+                    AndroidUtilities.runOnUIThread(UIRunnable(show_warn))
+                    return
                 if remote_version is None:
                     return
 
@@ -551,6 +569,11 @@ class Loader:
             def run_manual():
                 try:
                     remote_version, download_url = self._check_version(force=True)
+                    if remote_version == "UNSUPPORTED_VERSION":
+                        def show_warn():
+                            BulletinHelper.show_info(_localize("no_official_update"), get_last_fragment())
+                        AndroidUtilities.runOnUIThread(UIRunnable(show_warn))
+                        return
                     if remote_version is None:
                         err = self.config.data.get("last_error", "")
                         msg = f"Check failed: {err}" if err else "Failed to check updates"
@@ -598,6 +621,16 @@ class Loader:
 class Plugin(BasePlugin):
     def __init__(self):
         self.loader = None
+        self._logs = []
+
+    def log(self, message):
+        import datetime
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        self._logs.append(f"[{ts}] {message}")
+        try:
+            super().log(message)
+        except AttributeError:
+            pass
 
     def create_settings(self) -> List[Any]:
         items = []
@@ -629,6 +662,10 @@ class Plugin(BasePlugin):
         items.append(Text(
             text=_localize("install_file"),
             on_click=lambda v: self._on_install_file()
+        ))
+        items.append(Text(
+            text=_localize("copy_logs"),
+            on_click=lambda v: self._on_copy_logs()
         ))
         items.append(Divider())
         items.append(Text(
@@ -672,13 +709,42 @@ class Plugin(BasePlugin):
         else:
             BulletinHelper.show_info(_localize("file_not_found"), get_last_fragment())
 
+    def _on_copy_logs(self):
+        try:
+            java_logs = ""
+            if self.loader and self.loader.dex_main_class:
+                try:
+                    get_logs_method = self.loader.dex_main_class.getMethod("getLogs")
+                    java_logs = str(get_logs_method.invoke(None))
+                except Exception as e:
+                    self.log(f"Failed to fetch Java logs: {e}")
+                    
+            plugin_logs = "\n".join(self._logs) if self._logs else "No plugin logs"
+            
+            full_logs = "=== Loader Logs ===\n" + plugin_logs
+            if java_logs:
+                full_logs += "\n\n=== Hook Logs ===\n" + java_logs
+                
+            AndroidUtilities.addToClipboard(full_logs)
+            BulletinHelper.show_info(_localize("logs_copied"), get_last_fragment())
+        except Exception as e:
+            self.log(f"Error copying logs: {e}")
+            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+
     def _open_re_extera_settings(self):
         try:
             if self.loader is None or self.loader.dex_main_class is None:
                 self.log("DEX not loaded")
                 return
-            show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
-            show_method.invoke(None)
+            try:
+                show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
+                show_method.invoke(None)
+            except Exception as e:
+                self.log(f"showSettingsExternal failed, trying fallback: {e}")
+                get_instance = self.loader.dex_main_class.getMethod("getInstance")
+                instance = get_instance.invoke(None)
+                show_method = self.loader.dex_main_class.getMethod("showSettings")
+                show_method.invoke(instance)
         except Exception as e:
             self.log(f"Error opening DEX settings: {e}")
 

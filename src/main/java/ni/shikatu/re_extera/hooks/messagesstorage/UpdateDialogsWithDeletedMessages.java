@@ -12,6 +12,11 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+            if ("deleteMessagesRange".equals(ste.getMethodName())) {
+                return;
+            }
+        }
         if (Settings.getSaveDeletedMessages()) {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
             long uid = ((Long) param.args[0]).longValue();
@@ -21,18 +26,26 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
             if (ids == null || ids.isEmpty()) {
                 return;
             }
-            // Defensive copy — caller may mutate the list after we return
-            final ArrayList<Integer> savedIds = new ArrayList<>(ids);
-            Main.log("UpdateDialogsWithDeletedMessages: intercepting %d ids for did=%d (args=%d)", savedIds.size(), did, param.args.length);
-            this.redb.lambda$batchPutDeletedMessagesAsync$1(did, savedIds);
-            MessageUtils.forceUpdateViews(currentAccount, did, savedIds);
-            // Only cancel the *internal* 4-arg variant. The public 5-arg method
-            // (updateDialogsWithDeletedMessages) also refreshes the dialog list
-            // preview (last message, unread count) and must NOT be skipped —
-            // otherwise the dialog list goes stale after a delete.
-            // The 5th arg (index 4) is present only in the public method.
+            
+            ArrayList<Integer> validIds = new ArrayList<>();
+            ArrayList<Integer> tempIds = new ArrayList<>();
+            for (Integer id : ids) {
+                if (id != null && id > 0) {
+                    validIds.add(id);
+                } else if (id != null) {
+                    tempIds.add(id);
+                }
+            }
+
+            if (!validIds.isEmpty()) {
+                Main.log("UpdateDialogsWithDeletedMessages: intercepting %d ids for did=%d (args=%d)", validIds.size(), did, param.args.length);
+                this.redb.lambda$batchPutDeletedMessagesAsync$1(did, validIds);
+                MessageUtils.forceUpdateViews(currentAccount, did, validIds);
+            }
+
+            param.args[2] = tempIds;
             boolean isInternalVariant = param.args.length == 4;
-            if (isInternalVariant) {
+            if (isInternalVariant && tempIds.isEmpty()) {
                 param.setResult((Object) null);
             }
         }
