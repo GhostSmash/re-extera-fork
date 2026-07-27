@@ -16,13 +16,15 @@ public class TransparentDeletedMessages extends XC_MethodHook {
             MessageObject messageObject = (MessageObject) param.args[0];
             View cell = (View) param.thisObject;
             
-            if (messageObject != null && messageObject.deleted && !messageObject.deletedByThanos) {
-                cell.setAlpha(0.6f);
-            } else {
-                cell.setAlpha(1.0f);
+            if (messageObject != null) {
+                if (messageObject.deleted && !messageObject.deletedByThanos) {
+                    cell.setAlpha(0.6f);
+                } else {
+                    cell.setAlpha(1.0f);
+                }
             }
-        } catch (Exception e) {
-            // Ignore
+        } catch (Throwable e) {
+            android.util.Log.e("re-extera", "TransparentDeletedMessages error", e);
         }
     }
 }

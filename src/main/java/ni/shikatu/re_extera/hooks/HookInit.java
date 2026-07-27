@@ -217,6 +217,7 @@ public final class HookInit {
         tryHook("ChatObject.getEmojiId", org.telegram.messenger.ChatObject.class, "getEmojiId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.ChatEmojiId(), TLRPC.Chat.class);
         
         tryHook("ChatMessageCell.setMessageObject", org.telegram.ui.Cells.ChatMessageCell.class, "setMessageObject", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessages(), MessageObject.class, MessageObject.GroupedMessages.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
+        tryHook("ChatMessageCell.setAlpha", org.telegram.ui.Cells.ChatMessageCell.class, "setAlpha", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessagesAlpha(), Float.TYPE);
         
         tryHook("ConnectionsManager.setAppPaused", org.telegram.tgnet.ConnectionsManager.class, "setAppPaused", new ni.shikatu.re_extera.hooks.connectionsmanager.WorkInBackground(), Boolean.TYPE, Boolean.TYPE);
         
