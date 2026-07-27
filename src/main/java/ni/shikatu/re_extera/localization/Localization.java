@@ -30,6 +30,8 @@ public class Localization {
     public static String DELETE_FILTER_ABOUT;
     public static String DELETE_FROM_EXCLUSIONS;
     public static String DISABLE_ADS;
+    public static String DISABLE_COLORED_REPLIES;
+    public static String WORK_IN_BACKGROUND;
     public static String DISABLE_BLUR;
     public static String EDIT_READ;
     public static String EDIT_REGEX_FILTER;
@@ -100,6 +102,11 @@ public class Localization {
     public static String SAVE_LAST_ONLINE;
     public static String EXPORT_DB;
     public static String IMPORT_DB;
+    public static String IMPORT_SUCCESSFUL;
+    public static String IMPORT_FAILED;
+    public static String EXPORT_SUCCESSFUL;
+    public static String EXPORT_FAILED;
+    public static String DB_NOT_FOUND;
     public static String READ_AT;
     public static String SAVE_ONE_TIME_MESSAGES;
     public static String SAVE_OWN_MESSAGES;
@@ -143,6 +150,11 @@ public class Localization {
             SAVE_ATTACHMENTS_DESC = "Удаленные медиа будут сохраняться в Downloads/ReExteraAttachments. Старые файлы будут удаляться при превышении лимита.";
             EXPORT_DB = "Экспорт базы данных";
             IMPORT_DB = "Импорт базы данных";
+            IMPORT_SUCCESSFUL = "Успешно импортировано! Перезапуск...";
+            IMPORT_FAILED = "Ошибка импорта: ";
+            EXPORT_SUCCESSFUL = "Экспортировано в Загрузки!";
+            EXPORT_FAILED = "Ошибка экспорта: ";
+            DB_NOT_FOUND = "База данных не найдена";
             READ_AT = "Прочитано в %s";
             MESSAGE_HISTORY = "История";
             MESSAGE_HISTORY_TOGGLE = "Сохранить историю правок";
@@ -173,6 +185,8 @@ public class Localization {
             READ_TO = "Читать: ";
             TYPE_TO = "Печатать: ";
             DISABLE_ADS = "Отключить рекламу";
+            DISABLE_COLORED_REPLIES = "Отключить цветные ответы";
+            WORK_IN_BACKGROUND = "Работать в фоне";
             CLEARING_NOW = "Очистка...";
             CLEAR_DELETED = "Очистить удаленные";
             FORWARDED_TO_SAVED_MESSAGES = "Переслано в избранное";
@@ -263,6 +277,11 @@ public class Localization {
         SAVE_ATTACHMENTS_DESC = "Deleted media will be saved to Downloads/ReExteraAttachments. Oldest files will be removed if the limit is exceeded.";
         EXPORT_DB = "Export DB";
         IMPORT_DB = "Import DB";
+        IMPORT_SUCCESSFUL = "Imported successfully! Restarting...";
+        IMPORT_FAILED = "Import failed: ";
+        EXPORT_SUCCESSFUL = "Exported to Downloads!";
+        EXPORT_FAILED = "Export failed: ";
+        DB_NOT_FOUND = "Database not found";
         READ_AT = "Read at %s";
         MESSAGE_HISTORY = "History";
         MESSAGE_HISTORY_TOGGLE = "Save message history";
@@ -316,6 +335,8 @@ public class Localization {
         UNKNOWN_DIALOG = "Unknown dialog";
         NO_EXLCUSIONS = "No exclusions";
         DISABLE_ADS = "Disable ads";
+        DISABLE_COLORED_REPLIES = "Disable colored replies";
+        WORK_IN_BACKGROUND = "Work in background";
         FILTERS = "Filters";
         ADD = "Add";
         SAVE = "Save";

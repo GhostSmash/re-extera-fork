@@ -49,20 +49,25 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()).setLinkAlias("reExteraIgnoreFlagSecure", this));
         items.add(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()).setLinkAlias("reExteraLocalPremium", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
+        items.add(UItem.asShadow());
+
+        items.add(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), Localization.WORK_IN_BACKGROUND).setChecked(Settings.getWorkInBackground()).setLinkAlias("reExteraWorkInBackground", this));
+        items.add(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()).setLinkAlias("reExteraIgnoreFlagSecure", this));
         items.add(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()).setLinkAlias("reExteraNoForward", this));
         items.add(UItem.asShadow(Localization.NO_FORWARD_ABOUT));
+
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
         items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
         items.add(UItem.asShadow(Localization.SHADOWBAN_ABOUT));
+
         items.add(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB).setLinkAlias("reExteraClearDb", this));
         items.add(UItem.asButton(AdditionalIds.EXPORT_DB_ID.getId(), Localization.EXPORT_DB).setLinkAlias("reExteraExportDb", this));
         items.add(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB).setLinkAlias("reExteraImportDb", this));
-        items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), "Отключить рекламу").setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
-        items.add(UItem.asCheck(AdditionalIds.DISABLE_COLORED_REPLIES_ID.getId(), "Отключить цветные ответы").setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
-        items.add(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), "Работать в фоне").setChecked(Settings.getWorkInBackground()).setLinkAlias("reExteraWorkInBackground", this));
         items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
+        items.add(UItem.asShadow());
     }
 
     /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.AdditionalFragment$1, reason: invalid class name */
@@ -253,12 +258,12 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 os.close();
                 is.close();
                 
-                BulletinFactory.of(this).createSuccessBulletin("Exported to Downloads!").show();
+                BulletinFactory.of(this).createSuccessBulletin(Localization.EXPORT_SUCCESSFUL).show();
             } else {
-                BulletinFactory.of(this).createErrorBulletin("Database not found").show();
+                BulletinFactory.of(this).createErrorBulletin(Localization.DB_NOT_FOUND).show();
             }
         } catch (Exception e) {
-            BulletinFactory.of(this).createErrorBulletin("Export failed: " + e.getMessage()).show();
+            BulletinFactory.of(this).createErrorBulletin(Localization.EXPORT_FAILED + e.getMessage()).show();
         }
     }
 
@@ -268,7 +273,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             intent.setType("*/*");
             startActivityForResult(intent, 1337);
         } catch (Exception e) {
-            BulletinFactory.of(this).createErrorBulletin("Import failed: " + e.getMessage()).show();
+            BulletinFactory.of(this).createErrorBulletin(Localization.IMPORT_FAILED + e.getMessage()).show();
         }
     }
 
@@ -289,7 +294,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 os.close();
                 is.close();
                 
-                android.widget.Toast.makeText(org.telegram.messenger.ApplicationLoader.applicationContext, "Imported successfully! Restarting...", android.widget.Toast.LENGTH_LONG).show();
+                android.widget.Toast.makeText(org.telegram.messenger.ApplicationLoader.applicationContext, Localization.IMPORT_SUCCESSFUL, android.widget.Toast.LENGTH_LONG).show();
                 
                 AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override
@@ -298,7 +303,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                     }
                 }, 1500);
             } catch (Exception e) {
-                BulletinFactory.of(this).createErrorBulletin("Import failed: " + e.getMessage()).show();
+                BulletinFactory.of(this).createErrorBulletin(Localization.IMPORT_FAILED + e.getMessage()).show();
             }
         }
         super.onActivityResultFragment(requestCode, resultCode, data);
