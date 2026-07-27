@@ -72,21 +72,22 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
+        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
+        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_BOT_CHATS_ID.getId(), Localization.SAVE_BOT_CHATS).setChecked(Settings.getSaveBotChats()).setLinkAlias("reExteraSaveBotChats", this));
+        items.add(UItem.asShadow());
+
+        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
+        long size = Settings.getAttachmentsMaxSize();
+        String sizeStr = size == 0 ? Localization.UNLIMITED : AndroidUtilities.formatFileSize(size);
+        items.add(UItem.asButton(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), Localization.SAVE_ATTACHMENTS_SIZE, sizeStr).setLinkAlias("reExteraSaveAttachmentsSize", this));
+        items.add(UItem.asShadow(Localization.SAVE_ATTACHMENTS_DESC));
+
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()).setLinkAlias("reExteraSaveReadDate", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
         items.add(UItem.asShadow());
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), "Сохранять вложения").setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
-        
-        long size = Settings.getAttachmentsMaxSize();
-        String sizeStr = size == 0 ? "Безлимит" : AndroidUtilities.formatFileSize(size);
-        items.add(UItem.asButton(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), "Максимальный размер папки", sizeStr).setLinkAlias("reExteraSaveAttachmentsSize", this));
-        items.add(UItem.asShadow("Удаленные медиа будут сохраняться в Downloads/ReExteraAttachments. Старые файлы будут удаляться при превышении лимита."));
 
-        items.add(UItem.asCheck(DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), "Полупрозрачные удалёнки").setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
-        items.add(UItem.asShadow());
+        items.add(UItem.asCheck(DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.RED_DELETED_MARK_ID.getId(), Localization.RED_DELETED_MARK).setChecked(Settings.getRedMark()).setLinkAlias("reExteraRedDeletedMark", this));
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
         items.add(UItem.asCustom(DeletedAndEditedIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
@@ -283,7 +284,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     private void showAttachmentsSizeDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Максимальный размер папки");
+        builder.setTitle(Localization.SAVE_ATTACHMENTS_SIZE);
         final long[] sizes = new long[]{
             100L * 1024 * 1024,
             500L * 1024 * 1024,
@@ -298,7 +299,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             "1 GB",
             "2 GB",
             "5 GB",
-            "Безлимит"
+            Localization.UNLIMITED
         };
         builder.setItems(items, new android.content.DialogInterface.OnClickListener() {
             @Override

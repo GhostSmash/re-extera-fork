@@ -91,6 +91,9 @@ public class Localization {
     public static String RESTART_APP_ABOUT;
     public static String RE_EXTERA_SETTINGS;
     public static String SAVE;
+    public static String SAVE_ATTACHMENTS;
+    public static String SAVE_ATTACHMENTS_SIZE;
+    public static String SAVE_ATTACHMENTS_DESC;
     public static String SAVE_BOT_CHATS;
     public static String SAVE_DELETED_MESSAGES;
     public static String SAVE_READ_DATE;
@@ -109,6 +112,7 @@ public class Localization {
     public static String TYPE;
     public static String TYPE_TO;
     public static String UNKNOWN_DIALOG;
+    public static String UNLIMITED;
     public static String UNLOAD_REEXTERA;
     public static String UNLOAD_SUCCESSFULL;
     public static String USE_COLLAPSED_BLOCKQUOTE;
@@ -134,6 +138,9 @@ public class Localization {
             SAVE_BOT_CHATS = "Сохранять в чатах с ботами";
             SAVE_READ_DATE = "Сохранять дату чтения";
             SAVE_LAST_ONLINE = "Сохранять последний онлайн";
+            SAVE_ATTACHMENTS = "Сохранять вложения";
+            SAVE_ATTACHMENTS_SIZE = "Максимальный размер папки";
+            SAVE_ATTACHMENTS_DESC = "Удаленные медиа будут сохраняться в Downloads/ReExteraAttachments. Старые файлы будут удаляться при превышении лимита.";
             EXPORT_DB = "Экспорт базы данных";
             IMPORT_DB = "Импорт базы данных";
             READ_AT = "Прочитано в %s";
@@ -148,6 +155,7 @@ public class Localization {
             CUSTOM_PREFIX = "Метка удаленок";
             LEAVE_BLANK_FOR_RECYCLE = "Оставьте пустым для иконки 🗑️";
             GHOST_MODE = "Режим призрака";
+            UNLIMITED = "Безлимит";
             DELETED_AND_EDITED_MESSAGES = "Измененные и удаленные сообщения";
             OTHER = "Другое";
             NO_FORWARD = "re:forward";
@@ -250,6 +258,9 @@ public class Localization {
         SAVE_BOT_CHATS = "Save in bot chats";
         SAVE_READ_DATE = "Save read date";
         SAVE_LAST_ONLINE = "Save last online";
+        SAVE_ATTACHMENTS = "Save attachments";
+        SAVE_ATTACHMENTS_SIZE = "Maximum folder size";
+        SAVE_ATTACHMENTS_DESC = "Deleted media will be saved to Downloads/ReExteraAttachments. Oldest files will be removed if the limit is exceeded.";
         EXPORT_DB = "Export DB";
         IMPORT_DB = "Import DB";
         READ_AT = "Read at %s";
@@ -264,6 +275,7 @@ public class Localization {
         CUSTOM_PREFIX = "Deleted message mark";
         LEAVE_BLANK_FOR_RECYCLE = "Leave blank for 🗑 icon️";
         GHOST_MODE = "Ghost mode";
+        UNLIMITED = "Unlimited";
         DELETED_AND_EDITED_MESSAGES = "Edited and deleted messages";
         OTHER = "Other";
         NO_FORWARD = "re:forward";
