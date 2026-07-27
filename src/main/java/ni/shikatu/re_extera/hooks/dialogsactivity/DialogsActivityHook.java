@@ -45,7 +45,7 @@ public class DialogsActivityHook extends XC_MethodHook {
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode[this.mode.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
-                onBeforeAddItems();
+                onBeforeAddItems(param);
                 break;
             case 2:
                 onBeforeAddItem(param);
@@ -59,9 +59,19 @@ public class DialogsActivityHook extends XC_MethodHook {
         }
     }
 
-    private void onBeforeAddItems() {
-        if (ExteraConfig.getNavigationDrawer() || !GhostMenuHelper.isGhostMenuVisible()) {
-            Main.log("DialogsActivityHook: Not adding ghost menu items. NavigationDrawer=%s, isGhostMenuVisible=%s", ExteraConfig.getNavigationDrawer(), GhostMenuHelper.isGhostMenuVisible());
+    private void onBeforeAddItems(XC_MethodHook.MethodHookParam param) {
+        if (param != null && param.args != null && param.args.length == 3 && param.args[2] instanceof java.util.function.IntPredicate) {
+            final java.util.function.IntPredicate original = (java.util.function.IntPredicate) param.args[2];
+            param.args[2] = new java.util.function.IntPredicate() {
+                @Override
+                public boolean test(int value) {
+                    if (value == 910001) return false;
+                    return original != null && original.test(value);
+                }
+            };
+        }
+        if (!GhostMenuHelper.isGhostMenuVisible()) {
+            Main.log("DialogsActivityHook: Not adding ghost menu items. isGhostMenuVisible=%s", GhostMenuHelper.isGhostMenuVisible());
             GhostMenuHelper.scrubGhostFromConfig();
             return;
         }
@@ -82,9 +92,6 @@ public class DialogsActivityHook extends XC_MethodHook {
     }
 
     private void onBeforeAddItem(final XC_MethodHook.MethodHookParam param) {
-        if (ExteraConfig.getNavigationDrawer()) {
-            return;
-        }
         
         int id = -1;
         BaseFragment fragment = null;

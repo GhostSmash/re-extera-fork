@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.HookInit;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
@@ -36,6 +37,8 @@ public final class Main {
     private static volatile Main instance;
     public static final List<Class<? extends BaseFragment>> fragments = java.util.Arrays.asList(AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class);
     public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
+    private static final ConcurrentLinkedQueue<String> logBuffer = new ConcurrentLinkedQueue<>();
+    private static final int MAX_LOGS = 500;
 
     static {
         Method m = null;
@@ -59,7 +62,10 @@ public final class Main {
     }
 
     public static Context getApplicationContext() {
-        return LaunchActivity.instance.getApplicationContext();
+        if (LaunchActivity.instance != null) {
+            return LaunchActivity.instance.getApplicationContext();
+        }
+        return org.telegram.messenger.ApplicationLoader.applicationContext;
     }
 
     public void start() {
@@ -126,6 +132,17 @@ public final class Main {
         String formatted = args.length == 0 ? message : String.format(message, args);
         Log.d(LOG_TAG, formatted);
         FileLog.d("[re:extera] " + formatted);
+        
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm:ss");
+        String ts = sdf.format(new java.util.Date());
+        logBuffer.offer("[" + ts + "] " + formatted);
+        while (logBuffer.size() > MAX_LOGS) {
+            logBuffer.poll();
+        }
+    }
+
+    public static String getLogs() {
+        return android.text.TextUtils.join("\n", logBuffer);
     }
 
     private static void initFragments() {

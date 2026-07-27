@@ -11,6 +11,11 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+            if ("deleteMessagesRange".equals(ste.getMethodName())) {
+                return;
+            }
+        }
         if (Settings.getSaveDeletedMessages()) {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
             long did = ((Long) param.args[0]).longValue();

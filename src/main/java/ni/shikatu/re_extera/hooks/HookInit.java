@@ -148,8 +148,16 @@ public final class HookInit {
         tryHook("MessagesController.sortDialogs", MessagesController.class, "sortDialogs", new SortDialogsHook(), LongSparseArray.class);
         tryHook("MessagesController.processLoadedDialogs", MessagesController.class, "processLoadedDialogs", new ProcessLoadedDialogs(), TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("SecretVoicePlayer.dismiss", SecretVoicePlayer.class, "dismiss", new SecretVoicePlayerDismiss(), new Class[0]);
+        // Telegram 12.9.0 changed method signatures and obfuscated internal methods.
+        // markMessagesAsDeleted: (long, ArrayList, boolean, boolean, int, int)
+        tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+        // Fallbacks for older Telegram versions
         tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
+
+        // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
+        // Fallbacks for older Telegram versions
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessages_old", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);

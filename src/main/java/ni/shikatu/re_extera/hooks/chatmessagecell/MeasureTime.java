@@ -59,10 +59,15 @@ public class MeasureTime extends XC_MethodHook {
         int mid = message.id;
         if (this.redb.messageIsDeleted(did, mid)) {
             CharSequence currentTimeString = (CharSequence) ReflectionUtils.get(CURRENT_TIME_STRING, cell);
-            if (!(currentTimeString instanceof SpannableStringBuilder)) {
+            if (currentTimeString == null) {
                 return;
             }
-            SpannableStringBuilder builderTime = (SpannableStringBuilder) currentTimeString;
+            SpannableStringBuilder builderTime;
+            if (currentTimeString instanceof SpannableStringBuilder) {
+                builderTime = (SpannableStringBuilder) currentTimeString;
+            } else {
+                builderTime = new SpannableStringBuilder(currentTimeString);
+            }
             
             TextPaint paint = null;
             if (CHAT_TIME_PAINT != null) {
