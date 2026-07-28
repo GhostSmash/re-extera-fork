@@ -57,7 +57,7 @@ public class MeasureTime extends XC_MethodHook {
         }
         long did = MessageUtils.getDialogIdFromMessage(message);
         int mid = message.id;
-        if (this.redb.messageIsDeleted(did, mid)) {
+        if (this.redb.messageIsDeleted(did, mid) || did == -999999999L) {
             CharSequence currentTimeString = (CharSequence) ReflectionUtils.get(CURRENT_TIME_STRING, cell);
             if (currentTimeString == null) {
                 return;
@@ -110,16 +110,16 @@ public class MeasureTime extends XC_MethodHook {
         } else if (deletedIcon != null) {
             builder = new SpannableStringBuilder("....");
             ColoredImageSpan span = new ColoredImageSpan(deletedIcon);
-            if (Settings.getRedMark()) {
-                span.setOverrideColor(cell.getThemedColor(Theme.key_color_red));
+            if (Settings.getDeletedMarkColor() != 0) {
+                span.setOverrideColor(Settings.getDeletedMarkColor());
             }
             span.setRelativeSize(paint.getFontMetricsInt());
             builder.setSpan(span, 0, builder.length(), 33);
         } else {
             return null;
         }
-        if (Settings.getRedMark()) {
-            builder.setSpan(new ForegroundColorSpan(cell.getThemedColor(Theme.key_color_red)), 0, builder.length(), 33);
+        if (Settings.getDeletedMarkColor() != 0) {
+            builder.setSpan(new ForegroundColorSpan(Settings.getDeletedMarkColor()), 0, builder.length(), 33);
         }
         return builder;
     }

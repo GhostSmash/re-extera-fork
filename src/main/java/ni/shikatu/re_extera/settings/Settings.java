@@ -62,6 +62,10 @@ public final class Settings {
         return prefs().getString(key, def);
     }
 
+    private static float getFloat(String key, float def) {
+        return prefs().getFloat(key, def);
+    }
+
     private static boolean getBool(String key, boolean def) {
         return prefs().getBoolean(key, def);
     }
@@ -76,6 +80,10 @@ public final class Settings {
 
     private static void putString(String key, String value) {
         prefs().edit().putString(key, value).apply();
+    }
+
+    private static void putFloat(String key, float value) {
+        prefs().edit().putFloat(key, value).apply();
     }
 
     private static void putBool(String key, boolean value) {
@@ -244,12 +252,20 @@ public final class Settings {
         putString("custom_prefix", v);
     }
 
-    public static boolean getRedMark() {
-        return getBool("red_mark", false);
+    public static int getDeletedMarkColor() {
+        return getInt("deleted_mark_color", 0);
     }
 
-    public static void setRedMark(boolean v) {
-        putBool("red_mark", v);
+    public static void setDeletedMarkColor(int v) {
+        putInt("deleted_mark_color", v);
+    }
+
+    public static int getDeletedMarkCustomColor() {
+        return getInt("deleted_mark_custom_color", 0);
+    }
+
+    public static void setDeletedMarkCustomColor(int v) {
+        putInt("deleted_mark_custom_color", v);
     }
 
     public static boolean getUseExpandableBlockQuote() {
@@ -329,7 +345,7 @@ public final class Settings {
     }
 
     public static void setDisableColoredReplies(boolean z) {
-        putBool("re_extera_disable_colored_replies", z);
+        putBool("disable_colored_replies", z);
     }
 
     public static boolean getTransparentDeletedMessages() {
@@ -338,6 +354,14 @@ public final class Settings {
 
     public static void setTransparentDeletedMessages(boolean z) {
         putBool("re_extera_transparent_deleted_messages", z);
+    }
+
+    public static float getTransparentDeletedMessagesAlpha() {
+        return getFloat("re_extera_transparent_deleted_messages_alpha", 0.5f);
+    }
+
+    public static void setTransparentDeletedMessagesAlpha(float alpha) {
+        putFloat("re_extera_transparent_deleted_messages_alpha", alpha);
     }
 
     public static boolean getWorkInBackground() {

@@ -34,9 +34,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         SAVE_MESSAGE_HISTORY_ID,
         SAVE_ATTACHMENTS_ID,
         SAVE_ATTACHMENTS_SIZE_ID,
-        TRANSPARENT_DELETED_MESSAGES_ID,
-        RED_DELETED_MARK_ID,
-        CUSTOM_DELETED_MARK_ID;
+        TRANSPARENT_DELETED_MESSAGES_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -128,10 +126,6 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 Settings.setTransparentDeletedMessages(!Settings.getTransparentDeletedMessages());
                 refreshCheckBox(item, position, Settings.getTransparentDeletedMessages());
                 break;
-            case 10:
-                Settings.setRedMark(!Settings.getRedMark());
-                refreshCheckBox(item, position, Settings.getRedMark());
-                break;
         }
     }
 
@@ -175,10 +169,6 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             try {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.ordinal()] = 9;
             } catch (NoSuchFieldError e6) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 10;
-            } catch (NoSuchFieldError e7) {
             }
         }
     }

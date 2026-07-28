@@ -137,7 +137,7 @@ public class Localization {
             HIDE_TYPING_STATUS = "Не отправлять \"печатает\"";
             HIDE_ONLINE_STATUS = "Не отправлять \"онлайн\"";
             NO_READ_STORIES = "Не читать истории";
-            ENABLE_ALPHA = "Полупрозрачные удаленки";
+            ENABLE_ALPHA = "Прозрачные удаленные сообщения";
             ALPHA_WARNING = "Эта функция кушает очень много";
             GENERAL = "Общие";
             THANKS = "Спасибо @bleizix";
@@ -265,7 +265,7 @@ public class Localization {
             HIDE_TYPING_STATUS = "Не надсилати \"друкує\"";
             HIDE_ONLINE_STATUS = "Не надсилати \"онлайн\"";
             NO_READ_STORIES = "Не читати історії";
-            ENABLE_ALPHA = "Напівпрозорі видалені повідомлення";
+            ENABLE_ALPHA = "Прозорі видалені повідомлення";
             ALPHA_WARNING = "Ця функція використовує дуже багато ресурсів";
             GENERAL = "Загальні";
             THANKS = "Дякуємо @bleizix";
@@ -395,7 +395,7 @@ public class Localization {
         NO_READ_STORIES = "Don't read stories";
         GENERAL = "General";
         THANKS = "Thanks to @bleizix";
-        ENABLE_ALPHA = "Half opacity for deleted messages";
+        ENABLE_ALPHA = "Transparent deleted messages";
         ALPHA_WARNING = "This function eats a lot of cpu";
         RE_EXTERA_SETTINGS = "re:extera Settings";
         SAVE_DELETED_MESSAGES = "Save deleted messages";
