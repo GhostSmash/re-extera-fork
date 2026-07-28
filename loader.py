@@ -69,29 +69,32 @@ DEV_DOWNLOAD_HEADERS = {
 
 # localization
 def _localize(key):
-    ru = LocaleController.getInstance().getCurrentLocale().getLanguage() == "ru"
+    lang = LocaleController.getInstance().getCurrentLocale().getLanguage()
     strings = {
-        "settings":        ("Настройки re:extera",  "re:extera Settings"),
-        "channel_dev":     ("Dev-сборки",            "Dev builds"),
-        "channel_release": ("Релизные сборки",       "Release builds"),
-        "check_updates":   ("Проверить обновления",  "Check for updates"),
-        "install_file":    ("Установить из файла",   "Install from file"),
+        "settings":        ("Настройки re:extera",  "Налаштування re:extera",  "re:extera Settings"),
+        "channel_dev":     ("Dev-сборки",            "Dev-білди",               "Dev builds"),
+        "channel_release": ("Релизные сборки",       "Релізні білди",           "Release builds"),
+        "check_updates":   ("Проверить обновления",  "Перевірити оновлення",    "Check for updates"),
+        "install_file":    ("Установить из файла",   "Встановити з файлу",      "Install from file"),
         "update_avail":    ("Доступна новая версия re:extera! Перезапустите приложение для применения обновления.",
+                            "Доступна нова версія re:extera! Перезапустіть додаток для застосування оновлення.",
                             "New re:extera version available! Restart the app to apply the update."),
-        "downloading":     ("Загрузка...",           "Downloading..."),
-        "updated_cache":   ("Обновлено из кеша",     "Updated from cache"),
-        "installed":       ("Установка завершена",   "Install completed"),
-        "channel_switch":  ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
-        "up_to_date":      ("Уже последняя версия",  "Already up to date"),
-        "file_not_found":  ("Файл не найден",        "File not found"),
+        "downloading":     ("Загрузка...",           "Завантаження...",         "Downloading..."),
+        "updated_cache":   ("Обновлено из кеша",     "Оновлено з кешу",         "Updated from cache"),
+        "installed":       ("Установка завершена",   "Встановлення завершено",  "Install completed"),
+        "channel_switch":  ("Канал изменён. Перезапустите приложение.", "Канал змінено. Перезапустіть додаток.", "Channel changed. Restart the app."),
+        "up_to_date":      ("Уже последняя версия",  "Вже остання версія",      "Already up to date"),
+        "file_not_found":  ("Файл не найден",        "Файл не знайдено",        "File not found"),
         "no_official_update": ("re:extera ещё не имеет официального обновления для этой версии, возможны баги.", 
+                               "re:extera ще не має офіційного оновлення для цієї версії, можливі баги.",
                                "re:extera doesn't have official update for this version, expect bugs."),
-        "copy_logs":       ("Скопировать логи",      "Copy logs"),
-        "logs_copied":     ("Логи скопированы в буфер обмена", "Logs copied to clipboard"),
-        "update_channel":  ("Канал обновлений",      "Update channel"),
-        "select_version":  ("Выбрать версию",        "Select Version"),
+        "copy_logs":       ("Скопировать логи",      "Скопіювати логи",         "Copy logs"),
+        "logs_copied":     ("Логи скопированы в буфер обмена", "Логи скопійовано в буфер обміну", "Logs copied to clipboard"),
+        "update_channel":  ("Канал обновлений",      "Канал оновлень",          "Update channel"),
+        "select_version":  ("Выбрать версию",        "Вибрати версію",          "Select Version"),
     }
-    return strings[key][1 if not ru else 0]
+    idx = 0 if lang == "ru" else (1 if lang == "uk" else 2)
+    return strings[key][idx]
 
 
 # file download handler from dev
