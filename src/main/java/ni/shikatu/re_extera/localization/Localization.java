@@ -115,6 +115,7 @@ public class Localization {
     public static String SHADOWBAN;
     public static String SHADOWBAN_ABOUT;
     public static String SPY;
+    public static String CUSTOMIZATION;
     public static String THANKS;
     public static String TYPE;
     public static String TYPE_TO;
@@ -231,6 +232,7 @@ public class Localization {
             GHOST_MODE_DISABLED = "Режим призрака выключен";
             GHOST_IN_DRAWER = "Кнопка призрака в боковом меню";
             SPY = "Шпион";
+            CUSTOMIZATION = "Кастомизация";
             GHOST_MODE_ENABLE = "Включить призрака";
             GHOST_MODE_DISABLE = "Выключить призрака";
             ADD_SETTINGS_TO_DRAWER = "Настройки в боковом меню";
@@ -358,6 +360,7 @@ public class Localization {
         GHOST_MODE_DISABLED = "Ghost mode disabled";
         GHOST_IN_DRAWER = "Ghost button in side menu";
         SPY = "Spy";
+        CUSTOMIZATION = "Customization";
         GHOST_MODE_ENABLE = "Enable ghost";
         GHOST_MODE_DISABLE = "Disable ghost";
         ADD_SETTINGS_TO_DRAWER = "Settings in side menu";

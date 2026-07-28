@@ -26,12 +26,14 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
     private Drawable additionalIcon;
     private Drawable deletedIcon;
     private Drawable ghostIcon;
+    private Drawable customizationIcon;
 
     public enum IDs {
         STICKER_ID,
         THANKS_ID,
         GHOST_MODE_BTN_ID,
         DELETED_AND_EDITED_MESSAGES_BTN_ID,
+        CUSTOMIZATION_BTN_ID,
         ADDITIONAL_BTN_ID;
 
         public int getId() {
@@ -43,6 +45,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         int sizeDp = AndroidUtilities.dp(28.0f);
         this.ghostIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.ghost), sizeDp, sizeDp);
         this.deletedIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.menu_hide_gift), sizeDp, sizeDp);
+        this.customizationIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_theme), sizeDp, sizeDp);
         this.additionalIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_list), sizeDp, sizeDp);
         return super.createView(context);
     }
@@ -94,6 +97,8 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         items.add(UItem.asShadow());
         items.add(UItem.asButton(IDs.DELETED_AND_EDITED_MESSAGES_BTN_ID.getId(), this.deletedIcon, Localization.SPY));
         items.add(UItem.asShadow());
+        items.add(UItem.asButton(IDs.CUSTOMIZATION_BTN_ID.getId(), this.customizationIcon, Localization.CUSTOMIZATION));
+        items.add(UItem.asShadow());
         items.add(UItem.asButton(IDs.ADDITIONAL_BTN_ID.getId(), this.additionalIcon, Localization.OTHER));
         items.add(UItem.asShadow());
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(String.format("**Version: %s**", Main.VERSION))));
@@ -116,6 +121,10 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$SettingsFragmentNew$IDs[IDs.ADDITIONAL_BTN_ID.ordinal()] = 3;
             } catch (NoSuchFieldError e3) {
             }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$SettingsFragmentNew$IDs[IDs.CUSTOMIZATION_BTN_ID.ordinal()] = 4;
+            } catch (NoSuchFieldError e4) {
+            }
         }
     }
 
@@ -132,6 +141,9 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
                 break;
             case 3:
                 presentFragment(new AdditionalFragment());
+                break;
+            case 4:
+                presentFragment(new CustomizationFragment());
                 break;
         }
     }

@@ -51,7 +51,6 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()).setLinkAlias("reExteraLocalPremium", this));
         items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
-        items.add(UItem.asCheck(AdditionalIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
         items.add(UItem.asShadow());
 
         items.add(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), Localization.WORK_IN_BACKGROUND).setChecked(Settings.getWorkInBackground()).setLinkAlias("reExteraWorkInBackground", this));

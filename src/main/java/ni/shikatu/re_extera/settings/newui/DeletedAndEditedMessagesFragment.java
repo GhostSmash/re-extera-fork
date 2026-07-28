@@ -47,50 +47,47 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         return Localization.SPY;
     }
 
-    private FrameLayout customMarkView() {
-        FrameLayout frameLayout = new FrameLayout(getContext());
-        EditTextSettingsCell customPrefix = new EditTextSettingsCell(getContext());
-        customPrefix.setTextAndHint(Settings.getCustomPrefix(), Localization.LEAVE_BLANK_FOR_RECYCLE, false);
-        customPrefix.getTextView().addTextChangedListener(new TextWatcher() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment.1
-            @Override // android.text.TextWatcher
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override // android.text.TextWatcher
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Settings.setCustomPrefix(s.toString());
-                MeasureTime.notifyMarkChanged(Settings.getCustomPrefix());
-            }
-
-            @Override // android.text.TextWatcher
-            public void afterTextChanged(Editable s) {
-            }
-        });
-        frameLayout.addView(customPrefix);
-        return frameLayout;
-    }
-
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_BOT_CHATS_ID.getId(), Localization.SAVE_BOT_CHATS).setChecked(Settings.getSaveBotChats()).setLinkAlias("reExteraSaveBotChats", this));
         items.add(UItem.asShadow());
 
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
-        long size = Settings.getAttachmentsMaxSize();
-        String sizeStr = size == 0 ? Localization.UNLIMITED : AndroidUtilities.formatFileSize(size);
-        items.add(UItem.asButton(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), Localization.SAVE_ATTACHMENTS_SIZE, sizeStr).setLinkAlias("reExteraSaveAttachmentsSize", this));
+        items.add(UItem.asHeader(Localization.SAVE_ATTACHMENTS_SIZE));
+        final long[] sizes = new long[]{
+            100L * 1024 * 1024,
+            500L * 1024 * 1024,
+            1024L * 1024 * 1024,
+            2L * 1024 * 1024 * 1024,
+            5L * 1024 * 1024 * 1024,
+            0L // Infinite
+        };
+        String[] sizeStrings = new String[]{
+            "100M",
+            "500M",
+            "1G",
+            "2G",
+            "5G",
+            "∞"
+        };
+        int selectedIndex = 5;
+        long currentSize = Settings.getAttachmentsMaxSize();
+        for (int i = 0; i < sizes.length; i++) {
+            if (sizes[i] == currentSize) {
+                selectedIndex = i;
+                break;
+            }
+        }
+        items.add(UItem.asSlideView(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), sizeStrings, selectedIndex, new org.telegram.messenger.Utilities.Callback<Integer>() {
+            @Override
+            public void run(Integer index) {
+                Settings.setAttachmentsMaxSize(sizes[index]);
+            }
+        }).setLinkAlias("reExteraSaveAttachmentsSize", this));
         items.add(UItem.asShadow(Localization.SAVE_ATTACHMENTS_DESC));
 
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()).setLinkAlias("reExteraSaveReadDate", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
         items.add(UItem.asShadow());
-
-        items.add(UItem.asCheck(DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.RED_DELETED_MARK_ID.getId(), Localization.RED_DELETED_MARK).setChecked(Settings.getRedMark()).setLinkAlias("reExteraRedDeletedMark", this));
-        items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
-        items.add(UItem.asCustom(DeletedAndEditedIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {
@@ -126,9 +123,6 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             case 7:
                 Settings.setSaveAttachments(!Settings.getSaveAttachments());
                 refreshCheckBox(item, position, Settings.getSaveAttachments());
-                break;
-            case 8:
-                showAttachmentsSizeDialog();
                 break;
             case 9:
                 Settings.setTransparentDeletedMessages(!Settings.getTransparentDeletedMessages());
@@ -234,8 +228,42 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
     public void showAdditionalDeleted() {
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(1);
+
+        final TextCheckCell saveMessageHistory = new TextCheckCell(getContext());
+        setTextAndValueAndCheck(saveMessageHistory, Localization.MESSAGE_HISTORY_TOGGLE, "", Settings.getSaveEditedMessages(), false, true);
+        saveMessageHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
+                saveMessageHistory.setChecked(Settings.getSaveEditedMessages());
+            }
+        });
+        layout.addView(saveMessageHistory);
+
+        final TextCheckCell saveOneTimeMessages = new TextCheckCell(getContext());
+        setTextAndValueAndCheck(saveOneTimeMessages, Localization.SAVE_ONE_TIME_MESSAGES, "", Settings.getSaveOneTimeMessages(), false, true);
+        saveOneTimeMessages.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
+                saveOneTimeMessages.setChecked(Settings.getSaveOneTimeMessages());
+            }
+        });
+        layout.addView(saveOneTimeMessages);
+
+        final TextCheckCell saveBotChats = new TextCheckCell(getContext());
+        setTextAndValueAndCheck(saveBotChats, Localization.SAVE_BOT_CHATS, "", Settings.getSaveBotChats(), false, true);
+        saveBotChats.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Settings.setSaveBotChats(!Settings.getSaveBotChats());
+                saveBotChats.setChecked(Settings.getSaveBotChats());
+            }
+        });
+        layout.addView(saveBotChats);
+
         final TextCheckCell saveManuallyDeletedMessages = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(saveManuallyDeletedMessages, Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, false);
+        setTextAndValueAndCheck(saveManuallyDeletedMessages, Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, true);
         saveManuallyDeletedMessages.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -282,39 +310,4 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         useExpandableBlockQuote.setChecked(Settings.getUseExpandableBlockQuote());
     }
 
-    private void showAttachmentsSizeDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle(Localization.SAVE_ATTACHMENTS_SIZE);
-        final long[] sizes = new long[]{
-            100L * 1024 * 1024,
-            500L * 1024 * 1024,
-            1024L * 1024 * 1024,
-            2L * 1024 * 1024 * 1024,
-            5L * 1024 * 1024 * 1024,
-            0L // Infinite
-        };
-        CharSequence[] items = new CharSequence[]{
-            "100 MB",
-            "500 MB",
-            "1 GB",
-            "2 GB",
-            "5 GB",
-            Localization.UNLIMITED
-        };
-        builder.setItems(items, new android.content.DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(android.content.DialogInterface dialogInterface, int i) {
-                Settings.setAttachmentsMaxSize(sizes[i]);
-                AndroidUtilities.runOnUIThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (listView != null && listView.adapter != null) {
-                            listView.adapter.update(true);
-                        }
-                    }
-                });
-            }
-        });
-        builder.show();
-    }
 }
