@@ -18,7 +18,7 @@ public class TransparentDeletedMessages extends XC_MethodHook {
             
             if (messageObject != null) {
                 if (messageObject.deleted && !messageObject.deletedByThanos) {
-                    cell.setAlpha(0.6f);
+                    cell.setAlpha(Settings.getTransparentDeletedMessagesAlpha());
                 } else {
                     cell.setAlpha(1.0f);
                 }

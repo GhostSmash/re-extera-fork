@@ -18,7 +18,7 @@ public class TransparentDeletedMessagesAlpha extends XC_MethodHook {
             
             if (messageObject != null && messageObject.deleted && !messageObject.deletedByThanos) {
                 float currentAlpha = (float) param.args[0];
-                param.args[0] = currentAlpha * 0.6f;
+                param.args[0] = currentAlpha * Settings.getTransparentDeletedMessagesAlpha();
             }
         } catch (Throwable e) {
             // Ignore if method not found or other errors
