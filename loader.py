@@ -667,8 +667,9 @@ class Loader:
 
                 except Exception as e:
                     self.plugin.log(f"Manual update check failed: {e}")
+                    err_str = str(e)
                     def show_exc():
-                        BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+                        BulletinHelper.show_info(f"Error: {err_str}", get_last_fragment())
                     AndroidUtilities.runOnUIThread(UIRunnable(show_exc))
 
             threading.Thread(target=run_manual).start()
