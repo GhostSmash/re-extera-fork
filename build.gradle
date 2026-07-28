@@ -2,12 +2,54 @@ plugins {
     id 'com.android.library' version '8.2.2'
 }
 
+def getVersionName(Project project) {
+    def envTag = System.getenv("GITHUB_REF_TYPE") == "tag" ? System.getenv("GITHUB_REF_NAME") : null
+    def tag = null
+    
+    if (envTag != null && !envTag.isEmpty()) {
+        tag = envTag
+    } else {
+        try {
+            def process = "git describe --tags --exact-match".execute(null, project.rootDir)
+            process.waitFor()
+            if (process.exitValue() == 0) {
+                tag = process.text.trim()
+            }
+        } catch (Exception e) {}
+    }
+    
+    if (tag != null && !tag.isEmpty()) {
+        if (tag.startsWith("v")) {
+            tag = tag.substring(1)
+        }
+        return tag
+    }
+
+    def date = new Date().format("yyyyMMddHHmmss")
+    def commit = "unknown"
+    try {
+        def process = "git rev-parse --short HEAD".execute(null, project.rootDir)
+        process.waitFor()
+        if (process.exitValue() == 0) {
+            commit = process.text.trim()
+        }
+    } catch (Exception e) {}
+
+    return "${date}-${commit}"
+}
+
 android {
     namespace 'ni.shikatu.re_extera'
     compileSdk 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk 26
+        
+        buildConfigField "String", "RE_EXTERA_VERSION", "\"${getVersionName(project)}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -63,3 +105,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }
+
