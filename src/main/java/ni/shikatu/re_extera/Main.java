@@ -100,6 +100,7 @@ public final class Main {
     public void onUnload() {
         if (hooks != null) {
             hooks.onUnload();
+            hooks = null;
         }
     }
 

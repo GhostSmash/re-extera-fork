@@ -1017,6 +1017,5 @@ class Plugin(BasePlugin):
             self.log(f"Error: {e}")
 
     def on_plugin_unload(self) -> None:
-        return
         if self.loader is not None:
             self.loader.unload()
