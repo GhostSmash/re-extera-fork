@@ -92,6 +92,7 @@ def _localize(key):
         "logs_copied":     ("Логи скопированы в буфер обмена", "Логи скопійовано в буфер обміну", "Logs copied to clipboard"),
         "update_channel":  ("Канал обновлений",      "Канал оновлень",          "Update channel"),
         "select_version":  ("Выбрать версию",        "Вибрати версію",          "Select Version"),
+        "dex_settings":    ("Настройки DEX",         "Налаштування DEX",        "DEX Settings"),
     }
     idx = 0 if lang == "ru" else (1 if lang == "uk" else 2)
     return strings[key][idx]
@@ -769,7 +770,7 @@ class Plugin(BasePlugin):
         ))
         items.append(Divider())
         items.append(Text(
-            text="DEX Settings",
+            text=_localize("dex_settings"),
             icon="msg_settings",
             on_click=lambda v: self._open_re_extera_settings()
         ))
