@@ -60,7 +60,7 @@ public final class GhostMenuHelper {
 
     public static boolean isGhostMenuVisible() {
         ensureInitialized();
-        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return false;
         return Settings.getGhostInMainMenu();
     }
 
@@ -78,7 +78,7 @@ public final class GhostMenuHelper {
 
     public static int getGhostMenuIndex() {
         ensureInitialized();
-        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return 0;
         return Settings.getGhostMenuIndex();
     }
 
@@ -237,7 +237,7 @@ public final class GhostMenuHelper {
 
     private static boolean registerPluginMenuItem(boolean force) {
         ensureInitialized();
-        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return false;
         if (!isGhostMenuVisible()) {
             unregisterPluginMenuItem();
             return false;
