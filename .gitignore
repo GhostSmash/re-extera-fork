@@ -2,3 +2,4 @@
 /.gradle
 /.omo
 /local.properties
+__pycache__/
