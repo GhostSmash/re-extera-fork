@@ -111,7 +111,11 @@ public final class MessageUtils {
     }
 
     static /* synthetic */ void lambda$forceUpdateViews$0(ChatMessageCell cell, RecyclerView.Adapter adapter, RecyclerListView chatListView) {
-        cell.forceResetMessageObject();
+        try {
+            cell.forceResetMessageObject();
+        } catch (Throwable e) {
+            Main.log("forceResetMessageObject error: %s", e.getMessage());
+        }
         cell.setAlpha(1.0f);
         adapter.notifyItemChanged(chatListView.getChildAdapterPosition(cell));
         cell.requestLayout();
