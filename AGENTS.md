@@ -20,24 +20,46 @@ python3 loader/build.py
 
 ## Project structure
 
-```
+```text
 re-extera/
-├── src/main/java/ni/shikatu/re_extera/
-│   ├── Main.java              # Entry point. initAndStart() → start() → DB init + hook init
-│   ├── Defaults.java           # Constants for blocked request types (reading, typing, stories, etc.)
-│   ├── db/                     # SQLite DB (re_extera.db) — deleted msgs, edits, shadowbans, etc.
-│   ├── hooks/                  # ~50+ Xposed method hooks across exteraGram/Telegram classes
-│   │   ├── HookInit.java       # Registers all hooks via XposedBridge
-│   │   └── <subdir>/           # Per-target hooks (messagescontroller, chatactivity, etc.)
-│   ├── settings/
-│   │   ├── Settings.java       # SharedPreferences wrapper (prefs name: "re_extera")
-│   │   └── newui/              # Settings fragments (Ghost, DeletedMsgs, Additional, etc.)
-│   ├── ui/                     # Additional UI fragments (Shadowban, RegexFilters, etc.)
-│   ├── localization/           # String overrides for the Telegram locale system
-│   └── utils/                  # 14 utility classes (ReflectionUtils, MessageForwarder, etc.)
-├── loader/                     # Python loader (exteraGram plugin engine), concatenated at build
-├── libs/exteragram.jar         # compileOnly dependency — exteraGram SDK stubs
-└── build.gradle                # com.android.library (NOT application)
+├── build.gradle                  # Android library build script
+├── libs/exteragram.jar           # compileOnly dependency (exteraGram SDK stubs)
+├── loader/                       # Python loader (concatenated by build.py)
+│   ├── build.py                  # Concatenation and syntax-checking script
+│   ├── config.py                 # Stores cached versions and rate-limiting data
+│   ├── dex.py                    # GitHub releases fetching and DEX loading engine
+│   ├── plugin.py                 # Main exteraGram BasePlugin implementation & UI dialogs
+│   ├── metadata.py               # Plugin metadata (__version__, __id__, __min_version__)
+│   └── (utils.py, constants.py, imports.py)
+└── src/main/java/ni/shikatu/re_extera/
+    ├── Main.java                 # Entry point: initAndStart() → DB init & hooks
+    ├── Defaults.java             # Constants for Ghost mode (typing, reading, etc.)
+    ├── db/                       # Custom SQLite implementation (re_extera.db)
+    │   ├── ReExteraDb.java       # Database helper and CRUD operations (HandlerThread)
+    │   └── (Entities: DialogExclusion, ShadowbanEntry)
+    ├── hooks/                    # ~50+ Xposed hooks across Telegram classes
+    │   ├── HookInit.java         # Central hook registry via XposedBridge
+    │   ├── chatactivity/         # Chat UI hooks (menus, message processing)
+    │   ├── chatmessagecell/      # Message cell hooks (deleted message transparency)
+    │   ├── connectionsmanager/   # Network hooks (Ghost mode sendRequestInternal interception)
+    │   ├── dialogsactivity/      # Dialog list hooks
+    │   ├── messagescontroller/   # Core logic hooks (filtering, shadowbans, update loop)
+    │   ├── messagesstorage/      # SQLite hooks (intercepting markMessagesAsDeleted)
+    │   └── (other hook subpackages: notificationmanager, profileactivity, sendmessageshelper, etc.)
+    ├── localization/
+    │   └── Localization.java     # Overrides for the built-in Telegram LocaleController
+    ├── settings/
+    │   ├── Settings.java         # SharedPreferences abstraction ("re_extera")
+    │   └── newui/                # Settings screen fragments (GhostFragment, CustomizationFragment, etc.)
+    ├── ui/                       # Additional UI components
+    │   ├── DeletedMessagesInChatFragment.java
+    │   ├── RegexFiltersFragment.java
+    │   └── (ShadowbanDialog, ExclusionsFragment)
+    └── utils/                    # 14 utility classes
+        ├── MessageForwarder.java # Logic for redirecting deleted/edited messages to Saved Messages
+        ├── ReflectionUtils.java  # Reflection helpers for accessing obfuscated Telegram fields
+        ├── GhostMenuHelper.java  # Helper for long-press ghost mode menus
+        └── (AccountUtils, DrawableUtils, ExclusionUtils, ShadowbanCache, etc.)
 ```
 
 ## Architecture
@@ -100,3 +122,21 @@ Types observed: `fix`, `feat`, `refactor`, `ci`, `chore`, `build`, `docs`. Scope
 - `anyAccountIsPremium()` in HookInit disables Local Premium if any account has real premium
 - ProGuard keeps `ni.shikatu.re_extera.Main` entirely (`-keep class` in `proguard-rules.pro`)
 - Local DEX path (for sideloading): `/storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex`
+
+## Debugging
+
+To debug the plugin locally, you must have an Android device connected via ADB with the exteraGram client (`com.exteragram.messenger`) installed. 
+
+### Pushing builds
+1. Build the DEX file using instructions in `Build commands` section
+
+2. Push the compiled DEX directly to the device's exteraGram media folder:
+   ```bash
+   adb push build/dex/classes.dex /storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex
+   ```
+3. User need go to plugin settings -> press `Install from file`/`Установить из файла`/`Встановити з файлу` and restart app _(don't use force stop via adb like am stop etc. this will not work)_
+
+
+### Debug errors
+- View logs via ADB: `adb logcat -d | grep -iE 're_extera|re:extera|chaquopy'`
+- Fallback: ask user copy logs and send to you: plugin settings -> `Copy logs`/`Скопировать логи`/`Скопіювати логи` (button will copy logs to phone's clipboard)
