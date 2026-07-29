@@ -101,12 +101,48 @@ public class ProcessUpdates extends XC_MethodHook {
                 ReExteraDb.get().saveReadEventAsync(did, outbox2.max_id);
             }
         }
-        if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus)) {
-            org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) update;
-            if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
-                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, ((TLRPC.TL_userStatusOffline) statusUpdate.status).expires);
-            } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
-                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
+        if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline()) {
+            if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) {
+                org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) update;
+                if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
+                    ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, ((TLRPC.TL_userStatusOffline) statusUpdate.status).expires);
+                } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
+                    ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
+                }
+            } else {
+                long onlineUserId = 0;
+                int onlineDate = 0;
+                if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
+                    if (newMsg.message != null && !(newMsg.message instanceof TLRPC.TL_messageEmpty)) {
+                        onlineUserId = getFromId(newMsg.message);
+                        onlineDate = newMsg.message.date;
+                    }
+                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
+                    if (newMsg2.message != null && !(newMsg2.message instanceof TLRPC.TL_messageEmpty)) {
+                        onlineUserId = getFromId(newMsg2.message);
+                        onlineDate = newMsg2.message.date;
+                    }
+                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateEditMessage editMsg = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
+                    if (editMsg.message != null && !(editMsg.message instanceof TLRPC.TL_messageEmpty)) {
+                        onlineUserId = getFromId(editMsg.message);
+                        onlineDate = editMsg.message.edit_date != 0 ? editMsg.message.edit_date : editMsg.message.date;
+                    }
+                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) update;
+                    onlineUserId = typing.user_id;
+                    onlineDate = (int) (System.currentTimeMillis() / 1000L);
+                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) update;
+                    onlineUserId = typing.from_id != null ? typing.from_id.user_id : 0;
+                    onlineDate = (int) (System.currentTimeMillis() / 1000L);
+                }
+                
+                if (onlineUserId > 0 && onlineDate > 0) {
+                    ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
+                }
             }
         }
         return true;
