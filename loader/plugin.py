@@ -145,7 +145,7 @@ class Plugin(BasePlugin):
         bld = AlertDialogBuilder(context)
         bld.set_title(title)
         bld.set_items(items, on_click)
-        bld.set_negative_button("Cancel", lambda b: b.dismiss())
+        bld.set_negative_button("Cancel", lambda *args: args[0].dismiss() if args else None)
         bld.show()
 
     def _download_and_apply_version(self, version, urls):

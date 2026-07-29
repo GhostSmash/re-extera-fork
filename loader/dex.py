@@ -393,8 +393,13 @@ class Loader:
         cached = self.config.get_version(self.channel)
         
         def show_dialog(changelog_text):
-            def do_update(bld):
-                bld.dismiss()
+            def do_update(*args):
+                try:
+                    if args and hasattr(args[0], 'dismiss'):
+                        args[0].dismiss()
+                except Exception:
+                    pass
+                BulletinHelper.show_info(_localize("downloading"), get_last_fragment())
                 def run_download():
                     try:
                         self.download_and_cache(remote_version, download_url)
@@ -409,7 +414,7 @@ class Loader:
                 bld.set_title(f"re:extera has updated to version {remote_version}")
                 bld.set_message(changelog_text)
                 bld.set_positive_button("Update", do_update)
-                bld.set_negative_button("Later", lambda b: b.dismiss())
+                bld.set_negative_button("Later", lambda *args: args[0].dismiss() if args else None)
                 bld.show()
                 
             AndroidUtilities.runOnUIThread(UIRunnable(on_ui))
