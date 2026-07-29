@@ -265,7 +265,7 @@ public final class GhostMenuHelper {
         }
     }
 
-    private static void unregisterPluginMenuItem() {
+    public static void unregisterPluginMenuItem() {
         if (!pluginMenuRegistered || !PluginsController.isPluginEngineSupported()) {
             return;
         }

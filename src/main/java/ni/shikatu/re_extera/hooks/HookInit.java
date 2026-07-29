@@ -254,5 +254,6 @@ public final class HookInit {
             hook.unhook();
         }
         this.hooks.clear();
+        GhostMenuHelper.unregisterPluginMenuItem();
     }
 }
