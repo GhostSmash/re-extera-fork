@@ -24,12 +24,24 @@ public class ProcessUpdates extends XC_MethodHook {
         TLRPC.Updates updates = (TLRPC.Updates) param.args[0];
         ArrayList<TLRPC.Update> filtered = new ArrayList<>();
         LongSparseArray<ArrayList<Integer>> channelDeleted = new LongSparseArray<>();
-        if (updates.update != null) {
+        if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortMessage) {
+            org.telegram.tgnet.TLRPC.TL_updateShortMessage shortMsg = (org.telegram.tgnet.TLRPC.TL_updateShortMessage) updates;
+            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortMsg.user_id > 0 && shortMsg.date > 0) {
+                ReExteraDb.get().saveLastOnlineAsync(shortMsg.user_id, shortMsg.date);
+                triggerUIUpdate(currentAccount);
+            }
+        } else if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) {
+            org.telegram.tgnet.TLRPC.TL_updateShortChatMessage shortChatMsg = (org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) updates;
+            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortChatMsg.from_id > 0 && shortChatMsg.date > 0) {
+                ReExteraDb.get().saveLastOnlineAsync(shortChatMsg.from_id, shortChatMsg.date);
+                triggerUIUpdate(currentAccount);
+            }
+        } else if (updates.update != null) {
             if (!processSingleUpdate(updates.update, channelDeleted, currentAccount)) {
                 param.setResult((Object) null);
                 return;
             }
-        } else {
+        } else if (updates.updates != null) {
             for (TLRPC.Update update : updates.updates) {
                 if (processSingleUpdate(update, channelDeleted, currentAccount)) {
                     filtered.add(update);
@@ -54,6 +66,22 @@ public class ProcessUpdates extends XC_MethodHook {
                     }
                 });
             }
+        }
+    }
+
+    private void triggerUIUpdate(int currentAccount) {
+        final int currentAccountFinal = currentAccount;
+        if (isStatusUpdateQueued.compareAndSet(false, true)) {
+            org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override
+                public void run() {
+                    isStatusUpdateQueued.set(false);
+                    org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
+                            org.telegram.messenger.NotificationCenter.updateInterfaces,
+                            Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
+                    );
+                }
+            }, 1000);
         }
     }
 
@@ -138,19 +166,7 @@ public class ProcessUpdates extends XC_MethodHook {
                 
                 if (onlineUserId > 0 && onlineDate > 0) {
                     ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
-                    final int currentAccountFinal = currentAccount;
-                    if (isStatusUpdateQueued.compareAndSet(false, true)) {
-                        org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                isStatusUpdateQueued.set(false);
-                                org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
-                                        org.telegram.messenger.NotificationCenter.updateInterfaces,
-                                        Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
-                                );
-                            }
-                        }, 1000);
-                    }
+                    triggerUIUpdate(currentAccount);
                 }
             }
         }
