@@ -33,8 +33,10 @@ jobs:
     - name: Copy classes.dex to root
       run: cp build/dex/classes.dex .
 
-    - name: Rename loader.py to loader.plugin
-      run: cp loader.py loader.plugin
+    - name: Build loader.plugin
+      run: |
+        python3 loader/build.py
+        cp build/plugin/loader.plugin .
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
