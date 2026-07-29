@@ -329,7 +329,7 @@ public final class GhostMenuHelper {
     }
 
     private static Object pyCall(Object pyObject, Object... args) throws ReflectiveOperationException {
-        return getPyObjectClass().getMethod("call", Object[].class).invoke(pyObject, args);
+        return getPyObjectClass().getMethod("call", Object[].class).invoke(pyObject, new Object[]{args});
     }
 
     private static Object pyCallAttr(Object pyObject, String key, Object... args) throws ReflectiveOperationException {
