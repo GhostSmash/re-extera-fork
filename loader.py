@@ -222,8 +222,12 @@ class Loader:
     def getInstance(self):
         if self.instance is None:
             try:
-                method = find_class(CLASS_NAME).getClass().getMethod("getInstance")
-                self.instance = method.invoke(None)
+                if getattr(self, "dex_main_class", None) is not None:
+                    method = self.dex_main_class.getMethod("getInstance")
+                    self.instance = method.invoke(None)
+                else:
+                    method = find_class(CLASS_NAME).getClass().getMethod("getInstance")
+                    self.instance = method.invoke(None)
             except Exception as e:
                 self.plugin.log(f"Error getting instance: {e}")
         return self.instance
@@ -621,14 +625,14 @@ class Loader:
                 
                 log_lines = []
                 for c in commits:
-                    msg = c["commit"]["message"].split("\\n")[0]
+                    msg = c["commit"]["message"].split("\n")[0]
                     author = c["author"]["login"] if c.get("author") else c["commit"]["author"]["name"]
                     log_lines.append(f"- {msg} ({author})")
                 
                 if not log_lines:
                     changelog_text = "No commits found in compare."
                 else:
-                    changelog_text = "\\n".join(log_lines)
+                    changelog_text = "\n".join(log_lines)
                 show_dialog(changelog_text)
             except Exception as e:
                 self.plugin.log(f"Failed to fetch changelog: {e}")
