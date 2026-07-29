@@ -395,8 +395,14 @@ class Loader:
         def show_dialog(changelog_text):
             def do_update(bld):
                 bld.dismiss()
-                self.plugin._download_and_apply_version(remote_version, download_url)
-                
+                def run_download():
+                    try:
+                        self.download_and_cache(remote_version, download_url)
+                        AndroidUtilities.runOnUIThread(UIRunnable(lambda: BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())))
+                    except Exception as e:
+                        AndroidUtilities.runOnUIThread(UIRunnable(lambda: BulletinHelper.show_info(f"Update failed: {e}", get_last_fragment())))
+                threading.Thread(target=run_download).start()
+
             def on_ui():
                 context = get_last_fragment().getParentActivity()
                 bld = AlertDialogBuilder(context)
