@@ -57,39 +57,34 @@ public class ProcessUpdates extends XC_MethodHook {
     }
 
     private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
+        boolean keep = true;
         if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateEditMessage edit = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
             processEditedMessage(edit.message, currentAccount);
-            return true;
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage) {
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage edit2 = (org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage) update;
             processEditedMessage(edit2.message, currentAccount);
-            return true;
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) {
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages del = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) update;
             processDeleteMessages(del, currentAccount);
-            return true;
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
             processDeleteChannelMessages(del2, channelDeleted);
-            return true;
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) {
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages del3 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) update;
             processDeleteScheduledMessages(del3, currentAccount);
-            return true;
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-            return true ^ shadowbanFilterHideDialog(newMsg.message);
-        }
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+            keep = !shadowbanFilterHideDialog(newMsg.message);
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-            return true ^ shadowbanFilterHideInGroups(newMsg2.message);
+            keep = !shadowbanFilterHideInGroups(newMsg2.message);
         }
+        
+        if (!keep) {
+            return false;
+        }
+
         if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {
             if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
                 org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;
