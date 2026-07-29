@@ -137,6 +137,16 @@ public class ProcessUpdates extends XC_MethodHook {
                 
                 if (onlineUserId > 0 && onlineDate > 0) {
                     ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
+                    final int currentAccountFinal = currentAccount;
+                    org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
+                                    org.telegram.messenger.NotificationCenter.updateInterfaces,
+                                    Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
+                            );
+                        }
+                    });
                 }
             }
         }
