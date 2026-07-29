@@ -17,6 +17,7 @@ import org.telegram.tgnet.TLRPC;
 
 public class ProcessUpdates extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
+    private static Runnable updateStatusRunnable = null;
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
@@ -138,15 +139,19 @@ public class ProcessUpdates extends XC_MethodHook {
                 if (onlineUserId > 0 && onlineDate > 0) {
                     ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
                     final int currentAccountFinal = currentAccount;
-                    org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
-                                    org.telegram.messenger.NotificationCenter.updateInterfaces,
-                                    Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
-                            );
-                        }
-                    });
+                    if (updateStatusRunnable == null) {
+                        updateStatusRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                updateStatusRunnable = null;
+                                org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
+                                        org.telegram.messenger.NotificationCenter.updateInterfaces,
+                                        Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
+                                );
+                            }
+                        };
+                        org.telegram.messenger.AndroidUtilities.runOnUIThread(updateStatusRunnable, 1000);
+                    }
                 }
             }
         }
