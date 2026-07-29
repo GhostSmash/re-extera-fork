@@ -236,53 +236,20 @@ public final class GhostMenuHelper {
     }
 
     private static boolean registerPluginMenuItem(boolean force) {
-        ensureInitialized();
-        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return false;
-        if (!isGhostMenuVisible()) {
-            unregisterPluginMenuItem();
-            return false;
-        }
-        if (pluginMenuRegistered && !force) {
-            return true;
-        }
-        Object python = getStartedPython();
-        if (!PluginsController.isPluginEngineAvailable() || python == null) {
-            return false;
-        }
-        try {
-            PluginsController controller = PluginsController.getInstance();
-            Plugin plugin = (Plugin) controller.getPlugins().get(GHOST_PLUGIN_ID);
-            if (plugin == null) {
-                plugin = new Plugin(GHOST_PLUGIN_ID, GHOST_PLUGIN_NAME);
-                plugin.setEngine(PluginsConstants.PYTHON);
-                plugin.setDescription("Native re:extera integration");
-                plugin.setAuthor(GHOST_PLUGIN_NAME);
-                controller.getPlugins().put(GHOST_PLUGIN_ID, plugin);
-            }
-            plugin.setError((Throwable) null);
-            plugin.setEnabled(true);
-            String itemId = addPluginMenuItem(controller, createPluginMenuItemData(python));
-            pluginMenuRegistered = GHOST_PLUGIN_MENU_ITEM_ID.equals(itemId);
-            return pluginMenuRegistered;
-        } catch (Throwable e) {
-            Main.log("Failed to register ghost plugin menu item: %s", e.getMessage());
-            pluginMenuRegistered = false;
-            return false;
-        }
+        unregisterPluginMenuItem();
+        return false;
     }
 
     public static void unregisterPluginMenuItem() {
-        if (!pluginMenuRegistered || !PluginsController.isPluginEngineSupported()) {
+        if (!PluginsController.isPluginEngineSupported()) {
             return;
         }
         try {
             PluginsController.getInstance().removeMenuItem(GHOST_PLUGIN_ID, GHOST_PLUGIN_MENU_ITEM_ID);
         } catch (Throwable e) {
-            try {
-                Main.log("Failed to unregister ghost plugin menu item: %s", e.getMessage());
-            } finally {
-                pluginMenuRegistered = false;
-            }
+            Main.log("Failed to unregister ghost plugin menu item: %s", e.getMessage());
+        } finally {
+            pluginMenuRegistered = false;
         }
     }
 
