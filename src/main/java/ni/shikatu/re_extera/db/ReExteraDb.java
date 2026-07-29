@@ -28,6 +28,7 @@ public final class ReExteraDb {
     private final Handler dbHandler;
     private final HandlerThread dbThread;
     private final Helper helper;
+    private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static synchronized ReExteraDb init(Context context) {
         if (instance == null) {
@@ -878,6 +879,7 @@ public final class ReExteraDb {
     }
 
     public void saveLastOnlineAsync(final long userId, final int ts) {
+        lastOnlineCache.put(userId, ts);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -887,6 +889,10 @@ public final class ReExteraDb {
     }
 
     public int getLastOnline(long userId) {
+        Integer cached = lastOnlineCache.get(userId);
+        if (cached != null) {
+            return cached;
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
             Cursor c = db.rawQuery("SELECT online_ts FROM last_online_users WHERE user_id = ?", new String[]{String.valueOf(userId)});
@@ -894,6 +900,9 @@ public final class ReExteraDb {
                 int i = (c.moveToFirst() && !c.isNull(0)) ? c.getInt(0) : 0;
                 if (c != null) {
                     c.close();
+                }
+                if (i > 0) {
+                    lastOnlineCache.put(userId, i);
                 }
                 return i;
             } catch (Throwable th) {
