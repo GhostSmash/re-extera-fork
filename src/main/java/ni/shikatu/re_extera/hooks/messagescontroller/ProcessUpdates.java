@@ -17,7 +17,7 @@ import org.telegram.tgnet.TLRPC;
 
 public class ProcessUpdates extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
-    private static Runnable updateStatusRunnable = null;
+    private static final java.util.concurrent.atomic.AtomicBoolean isStatusUpdateQueued = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
@@ -139,18 +139,17 @@ public class ProcessUpdates extends XC_MethodHook {
                 if (onlineUserId > 0 && onlineDate > 0) {
                     ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
                     final int currentAccountFinal = currentAccount;
-                    if (updateStatusRunnable == null) {
-                        updateStatusRunnable = new Runnable() {
+                    if (isStatusUpdateQueued.compareAndSet(false, true)) {
+                        org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
                             @Override
                             public void run() {
-                                updateStatusRunnable = null;
+                                isStatusUpdateQueued.set(false);
                                 org.telegram.messenger.NotificationCenter.getInstance(currentAccountFinal).postNotificationName(
                                         org.telegram.messenger.NotificationCenter.updateInterfaces,
                                         Integer.valueOf(org.telegram.messenger.MessagesController.UPDATE_MASK_STATUS)
                                 );
                             }
-                        };
-                        org.telegram.messenger.AndroidUtilities.runOnUIThread(updateStatusRunnable, 1000);
+                        }, 1000);
                     }
                 }
             }
