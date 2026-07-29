@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 public class TransparentDeletedMessagesAlpha extends XC_MethodHook {
     @Override
     public void beforeHookedMethod(MethodHookParam param) {
-        if (!Settings.getTransparentDeletedMessages()) {
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive || !Settings.getTransparentDeletedMessages()) {
             return;
         }
         
@@ -16,9 +16,12 @@ public class TransparentDeletedMessagesAlpha extends XC_MethodHook {
             Method getMessageObjectMethod = param.thisObject.getClass().getMethod("getMessageObject");
             MessageObject messageObject = (MessageObject) getMessageObjectMethod.invoke(param.thisObject);
             
-            if (messageObject != null && messageObject.deleted && !messageObject.deletedByThanos) {
-                float currentAlpha = (float) param.args[0];
-                param.args[0] = currentAlpha * Settings.getTransparentDeletedMessagesAlpha();
+            if (messageObject != null) {
+                boolean isDeleted = messageObject.deleted || ni.shikatu.re_extera.db.ReExteraDb.get().messageIsDeleted(messageObject);
+                if (isDeleted && !messageObject.deletedByThanos) {
+                    float currentAlpha = (float) param.args[0];
+                    param.args[0] = currentAlpha * Settings.getTransparentDeletedMessagesAlpha();
+                }
             }
         } catch (Throwable e) {
             // Ignore if method not found or other errors
