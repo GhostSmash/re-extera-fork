@@ -140,6 +140,7 @@ public final class HookInit {
     public void startIntercepting() {
         startSendRequestHook();
         tryHook("MessagesController.processUpdates", MessagesController.class, "processUpdates", new ProcessUpdates(), TLRPC.Updates.class, Boolean.TYPE);
+        tryHook("MessagesController.putUsers", MessagesController.class, "putUsers", new ni.shikatu.re_extera.hooks.messagescontroller.PutUsers(), ArrayList.class, Boolean.TYPE);
         tryHook("MessagesController.isChatNoForwards(Chat)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), TLRPC.Chat.class);
         tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);
         tryHook("MessagesController.isUserNoForwards", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), TLRPC.UserFull.class);
