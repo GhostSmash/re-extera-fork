@@ -8,7 +8,7 @@ import org.telegram.messenger.MessageObject;
 public class TransparentDeletedMessages extends XC_MethodHook {
     @Override
     public void afterHookedMethod(MethodHookParam param) {
-        if (!Settings.getTransparentDeletedMessages()) {
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive || !Settings.getTransparentDeletedMessages()) {
             return;
         }
         
@@ -17,7 +17,8 @@ public class TransparentDeletedMessages extends XC_MethodHook {
             View cell = (View) param.thisObject;
             
             if (messageObject != null) {
-                if (messageObject.deleted && !messageObject.deletedByThanos) {
+                boolean isDeleted = messageObject.deleted || ni.shikatu.re_extera.db.ReExteraDb.get().messageIsDeleted(messageObject);
+                if (isDeleted && !messageObject.deletedByThanos) {
                     cell.setAlpha(Settings.getTransparentDeletedMessagesAlpha());
                 } else {
                     cell.setAlpha(1.0f);

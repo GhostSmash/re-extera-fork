@@ -94,7 +94,10 @@ public final class HookInit {
         XC_MethodHook.Unhook register() throws Throwable;
     }
 
+    public static boolean isActive = true;
+
     public void init() {
+        isActive = true;
         try {
             startIntercepting();
         } catch (Exception e) {
@@ -247,12 +250,21 @@ public final class HookInit {
     }
 
     public void onUnload() {
+        isActive = false;
         if (this.sendRequestHook != null) {
-            this.sendRequestHook.unhook();
+            try {
+                this.sendRequestHook.unhook();
+            } catch (Throwable e) {
+                Main.log("Failed to unhook sendRequestHook: %s", e.getMessage());
+            }
             this.sendRequestHook = null;
         }
         for (XC_MethodHook.Unhook hook : this.hooks) {
-            hook.unhook();
+            try {
+                hook.unhook();
+            } catch (Throwable e) {
+                Main.log("Failed to unhook: %s", e.getMessage());
+            }
         }
         this.hooks.clear();
         GhostMenuHelper.unregisterPluginMenuItem();

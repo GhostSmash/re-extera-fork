@@ -42,6 +42,7 @@ public class MeasureTime extends XC_MethodHook {
     }
 
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         TLRPC.Message message;
         SpannableStringBuilder prefix;
         if (CURRENT_TIME_STRING == null || TIME_TEXT_WIDTH == null) {

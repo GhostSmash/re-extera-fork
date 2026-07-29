@@ -60,11 +60,13 @@ public final class GhostMenuHelper {
 
     public static boolean isGhostMenuVisible() {
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         return Settings.getGhostInMainMenu();
     }
 
     public static void setGhostMenuVisible(boolean visible) {
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         if (visible && Settings.getGhostMenuIndex() < 0) {
             Settings.setGhostMenuIndex(countEditorVisibleItems(ExteraConfig.getMainMenuLayout()));
         }
@@ -76,11 +78,13 @@ public final class GhostMenuHelper {
 
     public static int getGhostMenuIndex() {
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         return Settings.getGhostMenuIndex();
     }
 
     public static void setGhostMenuIndex(int index) {
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         Settings.setGhostMenuIndex(Math.max(0, index));
         clampGhostMenuIndex();
     }
@@ -181,6 +185,7 @@ public final class GhostMenuHelper {
     public static void injectIntoDrawer(DrawerMenuView drawerMenuView, int currentAccount, final BaseFragment fragment) {
         LinearLayout container;
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         if (registerPluginMenuItem(false) || !isGhostMenuVisible() || (container = getDrawerContainer(drawerMenuView)) == null) {
             return;
         }
@@ -232,6 +237,7 @@ public final class GhostMenuHelper {
 
     private static boolean registerPluginMenuItem(boolean force) {
         ensureInitialized();
+        if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         if (!isGhostMenuVisible()) {
             unregisterPluginMenuItem();
             return false;
