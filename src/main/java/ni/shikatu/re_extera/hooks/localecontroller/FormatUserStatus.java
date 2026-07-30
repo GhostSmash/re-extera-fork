@@ -50,10 +50,11 @@ public class FormatUserStatus extends XC_MethodHook {
         }
         TLRPC.UserStatus origStatus = origStatusLocal.get();
         if (origStatus != null) {
+            boolean wasOffline = user.status instanceof TLRPC.TL_userStatusOffline;
             user.status = origStatus; // restore original status
             origStatusLocal.remove();
             String res = (String) param.getResult();
-            if (res != null) {
+            if (res != null && wasOffline) {
                 param.setResult(res + " *");
             }
         }
