@@ -99,9 +99,6 @@ public class ProcessUpdates extends XC_MethodHook {
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
             processDeleteChannelMessages(del2, channelDeleted);
-        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) {
-            org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages del3 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) update;
-            processDeleteScheduledMessages(del3, currentAccount);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
             keep = !shadowbanFilterHideDialog(newMsg.message);
