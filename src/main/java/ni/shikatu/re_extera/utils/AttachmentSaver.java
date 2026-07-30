@@ -21,6 +21,14 @@ public class AttachmentSaver {
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        File nomedia = new File(dir, ".nomedia");
+        if (!nomedia.exists()) {
+            try {
+                nomedia.createNewFile();
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
         return dir;
     }
 
@@ -98,6 +106,7 @@ public class AttachmentSaver {
             });
 
             for (File f : files) {
+                if (".nomedia".equals(f.getName())) continue;
                 long size = f.length();
                 if (f.delete()) {
                     currentSize -= size;
