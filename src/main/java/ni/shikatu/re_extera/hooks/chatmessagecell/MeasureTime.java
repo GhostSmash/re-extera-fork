@@ -99,8 +99,6 @@ public class MeasureTime extends XC_MethodHook {
             if (timeWidthGot != null) {
                 ReflectionUtils.set(TIME_WIDTH, cell, Integer.valueOf(timeWidthGot.intValue() + extraWidth));
             }
-            cell.requestLayout();
-            cell.invalidate();
         }
     }
 
