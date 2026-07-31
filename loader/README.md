@@ -1,6 +1,6 @@
 <img src="../images/loader.png" width="150" align="left"/>
 
-## aartzz's re:extera loader
+## re:extera loader
 *[Licensed under the GNU General Public License v3.0](../LICENSE)*
 
 <br clear="all" />
