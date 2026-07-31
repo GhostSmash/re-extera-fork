@@ -7,9 +7,12 @@ public class WorkInBackground extends XC_MethodHook {
     @Override
     public void beforeHookedMethod(MethodHookParam param) {
         if (Settings.getWorkInBackground()) {
-            // Force setAppPaused(false, ...)
-            param.args[0] = false;
-            // The second parameter is whether to reset the idle state, which can be kept as is or also forced to false.
+            int currentAccount = ni.shikatu.re_extera.utils.AccountUtils.getCurrentAccount(param.thisObject);
+            if (currentAccount == org.telegram.messenger.UserConfig.selectedAccount) {
+                // Force setAppPaused(false, ...)
+                param.args[0] = false;
+                // The second parameter is whether to reset the idle state, which can be kept as is or also forced to false.
+            }
         }
     }
 }
