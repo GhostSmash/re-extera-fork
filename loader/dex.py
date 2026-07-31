@@ -301,7 +301,7 @@ class Loader:
                 with open(dl_path, "wb") as f:
                     f.write(plugin_bytes)
                 self.plugin.log(f"Elyx update saved to {dl_path}")
-                AndroidUtilities.runOnUIThread(UIRunnable(lambda: BulletinHelper.show_info("re:extera Elyx update downloaded! Please install from file.", get_last_fragment())))
+                AndroidUtilities.runOnUIThread(UIRunnable(lambda: BulletinHelper.show_info("re:extera .elyx update downloaded to Downloads directory! Please install from file.", get_last_fragment())))
                 return
 
             plugin_path = __file__
