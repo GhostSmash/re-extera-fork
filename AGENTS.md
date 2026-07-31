@@ -20,7 +20,7 @@ python3 loader/build.py
 
 ## Project structure
 
-```text
+```
 re-extera/
 ├── build.gradle                  # Android library build script
 ├── libs/exteragram.jar           # compileOnly dependency (exteraGram SDK stubs)
@@ -47,7 +47,7 @@ re-extera/
     │   ├── messagesstorage/      # SQLite hooks (intercepting markMessagesAsDeleted)
     │   └── (other hook subpackages: notificationmanager, profileactivity, sendmessageshelper, etc.)
     ├── localization/
-    │   └── Localization.java     # Overrides for the built-in Telegram LocaleController
+    │   └── Localization.java     # Translations for DEX settings
     ├── settings/
     │   ├── Settings.java         # SharedPreferences abstraction ("re_extera")
     │   └── newui/                # Settings screen fragments (GhostFragment, CustomizationFragment, etc.)
@@ -127,7 +127,10 @@ Types observed: `fix`, `feat`, `refactor`, `ci`, `chore`, `build`, `docs`. Scope
 
 To debug the plugin locally, you must have an Android device connected via ADB with the exteraGram client (`com.exteragram.messenger`) installed. 
 
-### Pushing builds
+### Pushing builds (DEX)
+
+**Requirements**: device connected via ADB, builded .dex file
+
 1. Build the DEX file using instructions in `Build commands` section
 
 2. Push the compiled DEX directly to the device's exteraGram media folder:
@@ -136,6 +139,37 @@ To debug the plugin locally, you must have an Android device connected via ADB w
    ```
 3. User need go to plugin settings -> press `Install from file`/`Установить из файла`/`Встановити з файлу` and restart app _(don't use force stop via adb like am stop etc. this will not work)_
 
+### Pushing builds (.plugin)
+
+**Requirements**: device connected via ADB, Python 3.x, `Developer mode` enabled on phone in "Plugins" section _(`exteraGram Settings` -> `Plugins` -> Settings icon top right -> `Developer mode`)_
+
+1. Build the .plugin using instructions in `Build commands` section
+
+Now, there is 2 ways how to push plugin to device
+
+**Method 1:** via exteragram-utils
+1. Make sure pip package `exteragram-utils` is installed
+2. run `extera loader.plugin`
+3. `extera` made all work _(port forward, push plugin etc.)_
+
+**Method 2:** via python script _(without `exteragram-utils`)_
+1. forward port: `adb forward tcp:42690 tcp:42690`
+2. run this script:
+```bash
+python3 -c "
+import socket, json
+with open('build/plugin/loader.plugin', 'r', encoding='utf-8') as f: content = f.read()
+
+def send_cmd(cmd):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('127.0.0.1', 42690))
+        s.sendall(json.dumps(cmd).encode('utf-8'))
+
+send_cmd({'@': 'write_plugin', '#': 1, 'plugin_id': 're_extera_loader', 'content': content})
+send_cmd({'@': 'reload_plugin', '#': 2, 'plugin_id': 're_extera_loader'})
+print('Plugin pushed and reloaded successfully!')
+"
+```
 
 ### Debug errors
 - View logs via ADB: `adb logcat -d | grep -iE 're_extera|re:extera|chaquopy'`

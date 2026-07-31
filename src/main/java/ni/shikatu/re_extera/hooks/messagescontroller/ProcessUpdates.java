@@ -37,13 +37,27 @@ public class ProcessUpdates extends XC_MethodHook {
                 triggerUIUpdate(currentAccount);
             }
         } else if (updates.update != null) {
-            if (!processSingleUpdate(updates.update, channelDeleted, currentAccount)) {
+            if (!processSingleUpdate(updates.update, channelDeleted, currentAccount, null)) {
                 param.setResult((Object) null);
                 return;
             }
         } else if (updates.updates != null) {
+            android.util.SparseArray<Long> midToDid = new android.util.SparseArray<>();
             for (TLRPC.Update update : updates.updates) {
-                if (processSingleUpdate(update, channelDeleted, currentAccount)) {
+                if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
+                    if (nm.message != null) {
+                        midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
+                    }
+                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+                    org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
+                    if (ncm.message != null) {
+                        midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
+                    }
+                }
+            }
+            for (TLRPC.Update update : updates.updates) {
+                if (processSingleUpdate(update, channelDeleted, currentAccount, midToDid)) {
                     filtered.add(update);
                 }
             }
@@ -85,7 +99,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
+    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount, android.util.SparseArray<Long> midToDid) {
         boolean keep = true;
         if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateEditMessage edit = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
@@ -95,7 +109,7 @@ public class ProcessUpdates extends XC_MethodHook {
             processEditedMessage(edit2.message, currentAccount);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages del = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) update;
-            processDeleteMessages(del, currentAccount);
+            processDeleteMessages(del, currentAccount, midToDid);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
             processDeleteChannelMessages(del2, channelDeleted);
@@ -218,7 +232,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, final int currentAccount) {
+    private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, final int currentAccount, android.util.SparseArray<Long> midToDid) {
         if (update.messages == null) {
             return;
         }
@@ -228,12 +242,18 @@ public class ProcessUpdates extends XC_MethodHook {
             Iterator it = update.messages.iterator();
             while (it.hasNext()) {
                 int id = ((Integer) it.next()).intValue();
+                long did = 0;
                 MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
                 if (obj != null) {
                     if (obj.messageOwner != null && obj.messageOwner.peer_id instanceof TLRPC.TL_peerChannel) {
                         continue;
                     }
-                    long did = obj.getDialogId();
+                    did = obj.getDialogId();
+                } else if (midToDid != null && midToDid.indexOfKey(id) >= 0) {
+                    did = midToDid.get(id);
+                }
+                
+                if (did != 0) {
                     if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
                         org.telegram.tgnet.TLRPC.User user = controller.getUser(did);
                         if (user != null && user.bot) {
