@@ -72,9 +72,9 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asRoundCheckbox(101, Localization.GHOST_EXCLUDE_GROUPS).setChecked(Settings.getGhostExcludeGroups()).pad());
-        items.add(UItem.asRoundCheckbox(102, Localization.GHOST_EXCLUDE_CHANNELS).setChecked(Settings.getGhostExcludeChannels()).pad());
-        items.add(UItem.asRoundCheckbox(103, Localization.GHOST_EXCLUDE_PMS).setChecked(Settings.getGhostExcludePMs()).pad());
+        items.add(UItem.asCheck(101, Localization.GHOST_EXCLUDE_GROUPS).setChecked(Settings.getGhostExcludeGroups()));
+        items.add(UItem.asCheck(102, Localization.GHOST_EXCLUDE_CHANNELS).setChecked(Settings.getGhostExcludeChannels()));
+        items.add(UItem.asCheck(103, Localization.GHOST_EXCLUDE_PMS).setChecked(Settings.getGhostExcludePMs()));
         items.add(UItem.asShadow((CharSequence) null));
         items.add(UItem.asButton(100, Localization.ADD).setLinkAlias("addException", this));
         items.add(UItem.asShadow((CharSequence) null));
