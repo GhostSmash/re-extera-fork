@@ -71,6 +71,8 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        items.add(UItem.asButton(100, Localization.ADD).setLinkAlias("addException", this));
+        items.add(UItem.asShadow((CharSequence) null));
         if (this.exceptions.isEmpty()) {
             items.add(UItem.asCustom(createEmptyView(getContext())));
             return;
@@ -83,6 +85,32 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == 100) {
+            Bundle args = new Bundle();
+            args.putBoolean("onlySelect", true);
+            args.putInt("dialogsType", 3);
+            org.telegram.ui.DialogsActivity fragment = new org.telegram.ui.DialogsActivity(args);
+            fragment.setDelegate(new org.telegram.ui.DialogsActivity.DialogsActivityDelegate() {
+                @Override
+                public boolean didSelectDialogs(org.telegram.ui.DialogsActivity dialogsActivity, java.util.ArrayList<org.telegram.messenger.MessagesStorage.TopicKey> arrayList, CharSequence charSequence, boolean z, boolean z2, int i, int i2, org.telegram.ui.TopicsFragment topicsFragment) {
+                    if (arrayList != null && !arrayList.isEmpty()) {
+                        long dialogId = arrayList.get(0).dialogId;
+                        ReExteraDb.get().setDialogReadingAsync(dialogId, Defaults.NEVER);
+                        ReExteraDb.get().setDialogTypingAsync(dialogId, Defaults.NEVER);
+                        org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                loadExceptions();
+                                if (getAdapter() != null) getAdapter().update(true);
+                            }
+                        }, 200);
+                    }
+                    dialogsActivity.finishFragment();
+                    return true;
+                }
+            });
+            presentFragment(fragment);
+        }
     }
 
     public boolean onLongClick(UItem item, View view, int position, float x, float y) {

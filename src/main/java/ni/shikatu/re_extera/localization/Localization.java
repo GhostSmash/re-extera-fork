@@ -56,6 +56,9 @@ public class Localization {
     public static String GHOST_MODE_DISABLED;
     public static String GHOST_MODE_ENABLE;
     public static String GHOST_MODE_ENABLED;
+    public static String GHOST_EXCLUDE_GROUPS;
+    public static String GHOST_EXCLUDE_CHANNELS;
+    public static String GHOST_EXCLUDE_PMS;
     public static String HIDE_DIALOG;
     public static String HIDE_IN_GROUPS;
     public static String HIDE_ONLINE_STATUS;
@@ -177,6 +180,9 @@ public class Localization {
             EXCLUSIONS = "Исключения";
             EXCEPTION_READING_TEXT = "Исключение нечиталки";
             EXCEPTION_TYPING_TEXT = "Исключение неписалки";
+            GHOST_EXCLUDE_GROUPS = "Не применять для групп";
+            GHOST_EXCLUDE_CHANNELS = "Не применять для каналов";
+            GHOST_EXCLUDE_PMS = "Не применять для личных сообщений";
             BASED_ON_GLOBAL = "В зависимости от глобальных";
             ALWAYS = "Всегда";
             NEVER = "Никогда";
@@ -305,6 +311,9 @@ public class Localization {
             EXCLUSIONS = "Винятки";
             EXCEPTION_READING_TEXT = "Виняток нечиталки";
             EXCEPTION_TYPING_TEXT = "Виняток неписалки";
+            GHOST_EXCLUDE_GROUPS = "Не застосовувати для груп";
+            GHOST_EXCLUDE_CHANNELS = "Не застосовувати для каналів";
+            GHOST_EXCLUDE_PMS = "Не застосовувати для особистих повідомлень";
             BASED_ON_GLOBAL = "Залежно від глобальних";
             ALWAYS = "Завжди";
             NEVER = "Ніколи";
@@ -432,8 +441,11 @@ public class Localization {
         RED_DELETED_MARK = "Red deleted mark";
         EXCLUSIONS = "Exclusions";
         EXCEPTION_READING_TEXT = "Exclusion reading";
-        EXCEPTION_TYPING_TEXT = "Exclusion typing";
-        BASED_ON_GLOBAL = "Based on global";
+        EXCEPTION_TYPING_TEXT = "Typing Exception";
+        GHOST_EXCLUDE_GROUPS = "Do not apply to groups";
+        GHOST_EXCLUDE_CHANNELS = "Do not apply to channels";
+        GHOST_EXCLUDE_PMS = "Do not apply to PMs";
+        BASED_ON_GLOBAL = "Based on Global";
         ALWAYS = "Always";
         NEVER = "Never";
         READ = "read";

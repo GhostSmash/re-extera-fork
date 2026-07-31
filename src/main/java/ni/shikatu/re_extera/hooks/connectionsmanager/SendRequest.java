@@ -48,11 +48,11 @@ public class SendRequest extends XC_MethodHook {
             return;
         }
         if (Defaults.readingRequests.contains(request.getClass())) {
-            applyReadingPolicy(param);
+            applyReadingPolicy(param, currentAccount, request);
             return;
         }
         if (Defaults.typingRequests.contains(request.getClass())) {
-            applyTypingPolicy(param);
+            applyTypingPolicy(param, currentAccount, request);
         } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
             param.setResult((Object) null);
         }
@@ -95,14 +95,55 @@ public class SendRequest extends XC_MethodHook {
         }
     }
 
-    private void applyReadingPolicy(XC_MethodHook.MethodHookParam param) {
-        switch (currentReadingStatus) {
+    private boolean isExcludedGlobally(int currentAccount, long dialogId) {
+        if (dialogId == 0) return false;
+        if (dialogId > 0) {
+            return Settings.getGhostExcludePMs();
+        } else {
+            org.telegram.tgnet.TLRPC.Chat chat = org.telegram.messenger.MessagesController.getInstance(currentAccount).getChat(Long.valueOf(-dialogId));
+            if (chat != null) {
+                boolean isChannel = org.telegram.messenger.ChatObject.isChannel(chat) && !chat.megagroup;
+                if (isChannel) {
+                    return Settings.getGhostExcludeChannels();
+                } else {
+                    return Settings.getGhostExcludeGroups();
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
+    private static long getDialogIdFromRequest(TLObject request) {
+        try {
+            java.lang.reflect.Field peerField = request.getClass().getField("peer");
+            if (peerField != null) {
+                Object peer = peerField.get(request);
+                if (peer instanceof TLRPC.TL_inputPeerUser) return ((TLRPC.TL_inputPeerUser) peer).user_id;
+                if (peer instanceof TLRPC.TL_inputPeerChat) return -((TLRPC.TL_inputPeerChat) peer).chat_id;
+                if (peer instanceof TLRPC.TL_inputPeerChannel) return -((TLRPC.TL_inputPeerChannel) peer).channel_id;
+            }
+        } catch (Exception e) {}
+        try {
+            java.lang.reflect.Field channelField = request.getClass().getField("channel");
+            if (channelField != null) {
+                Object channel = channelField.get(request);
+                if (channel instanceof TLRPC.TL_inputChannel) return -((TLRPC.TL_inputChannel) channel).channel_id;
+            }
+        } catch (Exception e) {}
+        return 0;
+    }
+
+    private void applyReadingPolicy(XC_MethodHook.MethodHookParam param, int currentAccount, TLObject request) {
+        long dialogId = getDialogIdFromRequest(request);
+        int status = dialogId != 0 ? ReExteraDb.get().getDialogReading(dialogId) : currentReadingStatus;
+        switch (status) {
             case Defaults.NEVER /* -1 */:
                 param.setResult((Object) null);
                 break;
             case Defaults.GLOBAL_VALUE /* 0 */:
             default:
-                if (Settings.getHideReadingWithGhost()) {
+                if (!isExcludedGlobally(currentAccount, dialogId) && Settings.getHideReadingWithGhost()) {
                     param.setResult((Object) null);
                 }
                 break;
@@ -111,14 +152,16 @@ public class SendRequest extends XC_MethodHook {
         }
     }
 
-    private void applyTypingPolicy(XC_MethodHook.MethodHookParam param) {
-        switch (currentTypingStatus) {
+    private void applyTypingPolicy(XC_MethodHook.MethodHookParam param, int currentAccount, TLObject request) {
+        long dialogId = getDialogIdFromRequest(request);
+        int status = dialogId != 0 ? ReExteraDb.get().getDialogTyping(dialogId) : currentTypingStatus;
+        switch (status) {
             case Defaults.NEVER /* -1 */:
                 param.setResult((Object) null);
                 break;
             case Defaults.GLOBAL_VALUE /* 0 */:
             default:
-                if (Settings.getHideTypingWithGhost()) {
+                if (!isExcludedGlobally(currentAccount, dialogId) && Settings.getHideTypingWithGhost()) {
                     param.setResult((Object) null);
                 }
                 break;

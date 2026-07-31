@@ -174,6 +174,30 @@ public final class Settings {
         return getImmediateOffline() && getGhostModeEnabledGlobal();
     }
 
+    public static boolean getGhostExcludeGroups() {
+        return getBool("ghost_exclude_groups", false);
+    }
+
+    public static void setGhostExcludeGroups(boolean v) {
+        putBool("ghost_exclude_groups", v);
+    }
+
+    public static boolean getGhostExcludeChannels() {
+        return getBool("ghost_exclude_channels", false);
+    }
+
+    public static void setGhostExcludeChannels(boolean v) {
+        putBool("ghost_exclude_channels", v);
+    }
+
+    public static boolean getGhostExcludePMs() {
+        return getBool("ghost_exclude_pms", false);
+    }
+
+    public static void setGhostExcludePMs(boolean v) {
+        putBool("ghost_exclude_pms", v);
+    }
+
     public static int countOfGhost() {
         int c = getHideOnline() ? 0 + 1 : 0;
         if (getHideTyping()) {

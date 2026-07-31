@@ -33,6 +33,9 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         GHOST_HIDE_TYPING_ID,
         GHOST_HIDE_READING_ID,
         GHOST_NO_READ_STORIES_ID,
+        GHOST_EXCLUDE_GROUPS_ID,
+        GHOST_EXCLUDE_CHANNELS_ID,
+        GHOST_EXCLUDE_PMS_ID,
         READ_ON_INTERACT_ID,
         SEND_SILENCE_ID,
         ADD_GHOST_TO_DRAWER_ID,
@@ -97,6 +100,9 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_TYPING_ID.getId(), Localization.HIDE_TYPING_STATUS).setChecked(Settings.getHideTyping()).pad());
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_READING_ID.getId(), Localization.HIDE_READING_MESSAGE).setChecked(Settings.getHideReading()).pad());
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_NO_READ_STORIES_ID.getId(), Localization.NO_READ_STORIES).setChecked(Settings.getNoReadStories()).pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_EXCLUDE_GROUPS_ID.getId(), Localization.GHOST_EXCLUDE_GROUPS).setChecked(Settings.getGhostExcludeGroups()).pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_EXCLUDE_CHANNELS_ID.getId(), Localization.GHOST_EXCLUDE_CHANNELS).setChecked(Settings.getGhostExcludeChannels()).pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_EXCLUDE_PMS_ID.getId(), Localization.GHOST_EXCLUDE_PMS).setChecked(Settings.getGhostExcludePMs()).pad());
         }
         items.add(UItem.asShadow());
         items.add(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()).setLinkAlias("reExteraReadOnInteract", this));
@@ -137,13 +143,25 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
             case 7:
+                Settings.setGhostExcludeGroups(!Settings.getGhostExcludeGroups());
+                refreshCheckBox(item, position, Settings.getGhostExcludeGroups(), true);
+                break;
+            case 8:
+                Settings.setGhostExcludeChannels(!Settings.getGhostExcludeChannels());
+                refreshCheckBox(item, position, Settings.getGhostExcludeChannels(), true);
+                break;
+            case 9:
+                Settings.setGhostExcludePMs(!Settings.getGhostExcludePMs());
+                refreshCheckBox(item, position, Settings.getGhostExcludePMs(), true);
+                break;
+            case 10:
                 Settings.setUseSchedule(!Settings.getUseSchedule());
                 refreshCheckBox(item, position, Settings.getUseSchedule());
                 break;
-            case 8:
+            case 11:
                 presentFragment(new ExclusionsFragment());
                 break;
-            case 9:
+            case 12:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -151,12 +169,12 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case 10:
+            case 13:
                 GhostMenuHelper.setGhostMenuVisible(!GhostMenuHelper.isGhostMenuVisible());
                 refreshCheckBox(item, position, GhostMenuHelper.isGhostMenuVisible());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 break;
-            case 11:
+            case 14:
                 Settings.setReadOnInteract(!Settings.getReadOnInteract());
                 refreshCheckBox(item, position, Settings.getReadOnInteract());
                 break;
@@ -193,23 +211,35 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             } catch (NoSuchFieldError e6) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.USE_SCHEDULE_ID.ordinal()] = 7;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_EXCLUDE_GROUPS_ID.ordinal()] = 7;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_EXCLUDE_CHANNELS_ID.ordinal()] = 8;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_EXCLUDE_PMS_ID.ordinal()] = 9;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.USE_SCHEDULE_ID.ordinal()] = 10;
             } catch (NoSuchFieldError e7) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.EXCLUSIONS_BUTTON_ID.ordinal()] = 8;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.EXCLUSIONS_BUTTON_ID.ordinal()] = 11;
             } catch (NoSuchFieldError e8) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SEND_SILENCE_ID.ordinal()] = 9;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SEND_SILENCE_ID.ordinal()] = 12;
             } catch (NoSuchFieldError e9) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.ADD_GHOST_TO_DRAWER_ID.ordinal()] = 10;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.ADD_GHOST_TO_DRAWER_ID.ordinal()] = 13;
             } catch (NoSuchFieldError e10) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.READ_ON_INTERACT_ID.ordinal()] = 11;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.READ_ON_INTERACT_ID.ordinal()] = 14;
             } catch (NoSuchFieldError e11) {
             }
         }
