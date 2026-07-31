@@ -211,6 +211,9 @@ class Loader:
                     dex_url = asset.get("browser_download_url", "")
                 elif name.endswith("loader.plugin"):
                     plugin_url = asset.get("browser_download_url", "")
+                elif name.endswith(".elyx"):
+                    plugin_url = asset.get("browser_download_url", "")
+                    self.plugin._is_elyx_update = True
             if not dex_url:
                 self.plugin.log(f"No .dex asset found in release {tag}")
                 return None, None
@@ -235,8 +238,15 @@ class Loader:
             dex_path = next((n for n in zf.namelist() if n.endswith("classes.dex")), "classes.dex")
             dex_bytes = zf.read(dex_path)
             try:
-                plugin_path = next((n for n in zf.namelist() if n.endswith("loader.plugin")), "loader.plugin")
-                plugin_bytes = zf.read(plugin_path)
+                plugin_path = next((n for n in zf.namelist() if n.endswith("loader.plugin")), None)
+                if not plugin_path:
+                    plugin_path = next((n for n in zf.namelist() if n.endswith(".elyx")), None)
+                    if plugin_path:
+                        self.plugin._is_elyx_update = True
+                if plugin_path:
+                    plugin_bytes = zf.read(plugin_path)
+                else:
+                    plugin_bytes = None
             except Exception:
                 plugin_bytes = None
         self.plugin.log(f"Downloaded {len(dex_bytes)} bytes from nightly.link")
@@ -285,6 +295,15 @@ class Loader:
 
     def _update_plugin_file(self, plugin_bytes):
         try:
+            if getattr(self.plugin, "_is_elyx_update", False):
+                import os
+                dl_path = os.path.join("/sdcard/Download", "re_extera_loader.elyx")
+                with open(dl_path, "wb") as f:
+                    f.write(plugin_bytes)
+                self.plugin.log(f"Elyx update saved to {dl_path}")
+                AndroidUtilities.runOnUIThread(UIRunnable(lambda: BulletinHelper.show_info("re:extera Elyx update downloaded! Please install from file.", get_last_fragment())))
+                return
+
             plugin_path = __file__
             if plugin_path.endswith(".pyc"):
                 plugin_path = plugin_path[:-1]
