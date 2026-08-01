@@ -149,14 +149,18 @@ class VersionSelectorMixin:
             tag = rel.get("tag_name", "")
             assets = rel.get("assets", [])
             dex_url = None
-            plugin_url = None
+            elyx_url = None
+            plugin_fallback_url = None
             for asset in assets:
                 name = asset.get("name", "")
                 if name.endswith(".dex"):
                     dex_url = asset.get("browser_download_url", "")
-                elif name.endswith("loader.plugin") or name.endswith("loader.elyx"):
-                    plugin_url = asset.get("browser_download_url", "")
-                    
+                elif name.endswith("loader.elyx"):
+                    elyx_url = asset.get("browser_download_url", "")
+                elif name.endswith("loader.plugin"):
+                    plugin_fallback_url = asset.get("browser_download_url", "")
+            
+            plugin_url = elyx_url if elyx_url else plugin_fallback_url
             if dex_url:
                 self._download_and_apply_version(tag, (dex_url, plugin_url))
             else:
