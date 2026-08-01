@@ -35,6 +35,31 @@ public final class Settings {
         }
     }
 
+    public enum UseScheduleMode {
+        NO(0),
+        YES(1),
+        ONLY_WITH_GHOST(2);
+
+        private final int type;
+
+        UseScheduleMode(int type) {
+            this.type = type;
+        }
+
+        public int getType() {
+            return this.type;
+        }
+
+        public static UseScheduleMode getValue(int value) {
+            for (UseScheduleMode s : values()) {
+                if (s.type == value) {
+                    return s;
+                }
+            }
+            return NO;
+        }
+    }
+
     private static SharedPreferences prefs() {
         SharedPreferences sharedPreferences;
         SharedPreferences local = cachedPrefs;
@@ -316,12 +341,12 @@ public final class Settings {
         putBool("remove_flag_secure", v);
     }
 
-    public static boolean getUseSchedule() {
-        return getBool("use_schedule", false);
+    public static int getUseSchedule() {
+        return getInt("use_schedule_mode", UseScheduleMode.NO.getType());
     }
 
-    public static void setUseSchedule(boolean v) {
-        putBool("use_schedule", v);
+    public static void setUseSchedule(UseScheduleMode value) {
+        putInt("use_schedule_mode", value.getType());
     }
 
     public static boolean getFiltersEnabled() {

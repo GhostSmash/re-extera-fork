@@ -89,6 +89,17 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
     }
 
+    public static String getScheduleString() {
+        switch (Settings.getUseSchedule()) {
+            case Defaults.ALWAYS /* 1 */:
+                return Localization.ALWAYS;
+            case 2:
+                return Localization.ONLY_WITH_GHOST;
+            default:
+                return Localization.NEVER;
+        }
+    }
+
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(ghostUItem().setLinkAlias("reExteraGhostMode", this));
         if (this.isGhostExpanded) {
@@ -100,7 +111,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
         items.add(UItem.asShadow());
         items.add(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()).setLinkAlias("reExteraReadOnInteract", this));
-        items.add(UItem.asCheck(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE).setChecked(Settings.getUseSchedule()).setLinkAlias("reExteraUseSchedule", this));
+        items.add(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()).setLinkAlias("reExteraUseSchedule", this));
         items.add(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()).setLinkAlias("reExteraSendSilence", this));
         items.add(UItem.asShadow());
         items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
@@ -137,8 +148,12 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
             case 7:
-                Settings.setUseSchedule(!Settings.getUseSchedule());
-                refreshCheckBox(item, position, Settings.getUseSchedule());
+                new UseScheduleDialog(getParentActivity(), new Runnable() { 
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        lambda$onClick$2();
+                    }
+                }).show();
                 break;
             case 8:
                 presentFragment(new ExclusionsFragment());
@@ -313,6 +328,84 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
             builder.setView(this.layout);
             builder.setTitle(Localization.SEND_SILENCE);
+            builder.show();
+        }
+    }
+
+    static class UseScheduleDialog {
+        private RadioColorCell always;
+        private Context context;
+        private LinearLayout layout;
+        private RadioColorCell never;
+        private Runnable onSelect;
+        private RadioColorCell onlyWithGhost;
+
+        UseScheduleDialog(Context context, Runnable onSelect) {
+            this.context = context;
+            this.onSelect = onSelect;
+            prepare();
+        }
+
+        private void prepare() {
+            this.layout = new LinearLayout(this.context);
+            this.layout.setOrientation(1);
+            this.always = new RadioColorCell(this.context);
+            this.always.setTextAndValue(Localization.ALWAYS, Settings.getUseSchedule() == Settings.UseScheduleMode.YES.getType());
+            this.always.setOnClickListener(new View.OnClickListener() { 
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view) {
+                    lambda$prepare$0(view);
+                }
+            });
+            this.onlyWithGhost = new RadioColorCell(this.context);
+            this.onlyWithGhost.setTextAndValue(Localization.ONLY_WITH_GHOST, Settings.getUseSchedule() == Settings.UseScheduleMode.ONLY_WITH_GHOST.getType());
+            this.onlyWithGhost.setOnClickListener(new View.OnClickListener() { 
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view) {
+                    lambda$prepare$1(view);
+                }
+            });
+            this.never = new RadioColorCell(this.context);
+            this.never.setTextAndValue(Localization.NEVER, Settings.getUseSchedule() == Settings.UseScheduleMode.NO.getType());
+            this.never.setOnClickListener(new View.OnClickListener() { 
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view) {
+                    lambda$prepare$2(view);
+                }
+            });
+            this.layout.addView(this.always);
+            this.layout.addView(this.onlyWithGhost);
+            this.layout.addView(this.never);
+        }
+
+        private /* synthetic */ void lambda$prepare$0(View v) {
+            Settings.setUseSchedule(Settings.UseScheduleMode.YES);
+            this.always.setChecked(true, true);
+            this.onlyWithGhost.setChecked(false, true);
+            this.never.setChecked(false, true);
+            this.onSelect.run();
+        }
+
+        private /* synthetic */ void lambda$prepare$1(View v) {
+            Settings.setUseSchedule(Settings.UseScheduleMode.ONLY_WITH_GHOST);
+            this.always.setChecked(false, true);
+            this.onlyWithGhost.setChecked(true, true);
+            this.never.setChecked(false, true);
+            this.onSelect.run();
+        }
+
+        private /* synthetic */ void lambda$prepare$2(View v) {
+            Settings.setUseSchedule(Settings.UseScheduleMode.NO);
+            this.always.setChecked(false, true);
+            this.onlyWithGhost.setChecked(false, true);
+            this.never.setChecked(true, true);
+            this.onSelect.run();
+        }
+
+        public void show() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+            builder.setView(this.layout);
+            builder.setTitle(Localization.USE_SCHEDULE);
             builder.show();
         }
     }

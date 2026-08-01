@@ -67,7 +67,8 @@ public class SendMessage extends XC_MethodHook {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         SendMessagesHelper.SendMessageParams params = (SendMessagesHelper.SendMessageParams) param.args[0];
         rewriteReplyToDeleted(params, currentAccount);
-        if (params.scheduleDate == 0 && Settings.getUseSchedule() && OPEN_SCHEDULED_MESSAGES != null) {
+        int useScheduleMode = Settings.getUseSchedule();
+        if (params.scheduleDate == 0 && (useScheduleMode == Settings.UseScheduleMode.YES.getType() || (useScheduleMode == Settings.UseScheduleMode.ONLY_WITH_GHOST.getType() && Settings.getGhostModeEnabledGlobal())) && OPEN_SCHEDULED_MESSAGES != null) {
             unhook = XposedBridge.hookMethod(OPEN_SCHEDULED_MESSAGES, RETURN_NULL);
             params.scheduleDate = (int) MessageUtils.getScheduleTime(currentAccount, params.photo, params.document);
             if (UPDATE_BOTTOM_OVERLAY != null) {
