@@ -58,7 +58,26 @@ public class MeasureTime extends XC_MethodHook {
         }
         long did = MessageUtils.getDialogIdFromMessage(message);
         int mid = message.id;
-        if (this.redb.messageIsDeleted(did, mid) || did == -999999999L) {
+        boolean isDeleted = did == -999999999L;
+        if (!isDeleted) {
+            try {
+                org.telegram.messenger.MessageObject.GroupedMessages group = cell.getCurrentMessagesGroup();
+                if (group != null && group.messages != null && !group.messages.isEmpty()) {
+                    isDeleted = true;
+                    for (MessageObject m : group.messages) {
+                        if (m != null && !m.deleted && !this.redb.messageIsDeleted(m)) {
+                            isDeleted = false;
+                            break;
+                        }
+                    }
+                } else {
+                    isDeleted = obj.deleted || this.redb.messageIsDeleted(did, mid);
+                }
+            } catch (Throwable e) {
+                isDeleted = obj.deleted || this.redb.messageIsDeleted(did, mid);
+            }
+        }
+        if (isDeleted) {
             CharSequence currentTimeString = (CharSequence) ReflectionUtils.get(CURRENT_TIME_STRING, cell);
             if (currentTimeString == null) {
                 return;

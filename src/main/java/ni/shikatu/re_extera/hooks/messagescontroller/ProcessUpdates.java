@@ -265,7 +265,7 @@ public class ProcessUpdates extends XC_MethodHook {
                         list = new ArrayList<>();
                         toUpdateGrouped.put(did, list);
                     }
-                    list.add(Integer.valueOf(obj.getId()));
+                    list.add(Integer.valueOf(obj != null ? obj.getId() : id));
                 }
             }
             for (int i = 0; i < toUpdateGrouped.size(); i++) {
