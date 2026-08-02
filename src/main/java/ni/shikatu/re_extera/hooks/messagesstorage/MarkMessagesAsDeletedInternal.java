@@ -6,6 +6,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
+import org.telegram.messenger.MessageObject;
 
 public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
@@ -34,7 +35,12 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
             if (originalMessages != null) {
                 for (Integer id : originalMessages) {
                     if (id != null && id > 0) {
-                        validIds.add(id);
+                        MessageObject obj = MessageUtils.getMessage(currentAccount, did, id);
+                        if (obj != null && obj.isOut() && !ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates.serverDeletedMessageIds.contains(id)) {
+                            tempIds.add(id);
+                        } else {
+                            validIds.add(id);
+                        }
                     } else if (id != null) {
                         tempIds.add(id);
                     }

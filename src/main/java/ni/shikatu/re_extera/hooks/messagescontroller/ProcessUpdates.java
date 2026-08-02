@@ -18,6 +18,7 @@ import org.telegram.tgnet.TLRPC;
 public class ProcessUpdates extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
     private static final java.util.concurrent.atomic.AtomicBoolean isStatusUpdateQueued = new java.util.concurrent.atomic.AtomicBoolean(false);
+    public static final java.util.Set<Integer> serverDeletedMessageIds = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
@@ -46,12 +47,12 @@ public class ProcessUpdates extends XC_MethodHook {
             for (TLRPC.Update update : updates.updates) {
                 if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-                    if (nm.message != null) {
+                    if (nm.message != null && !nm.message.out) {
                         midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-                    if (ncm.message != null) {
+                    if (ncm.message != null && !ncm.message.out) {
                         midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
                     }
                 }
@@ -72,6 +73,7 @@ public class ProcessUpdates extends XC_MethodHook {
             final long did = channelDeleted.keyAt(i);
             final ArrayList<Integer> ids = (ArrayList) channelDeleted.valueAt(i);
             if (ids != null && !ids.isEmpty()) {
+                serverDeletedMessageIds.addAll(ids);
                 this.redb.batchPutDeletedMessagesAsync(did, ids);
                 this.redb.postToDbThread(new Runnable() {
                     @Override
@@ -112,7 +114,7 @@ public class ProcessUpdates extends XC_MethodHook {
             processDeleteMessages(del, currentAccount, midToDid);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
-            processDeleteChannelMessages(del2, channelDeleted);
+            processDeleteChannelMessages(del2, channelDeleted, currentAccount);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
             keep = !shadowbanFilterHideDialog(newMsg.message);
@@ -272,6 +274,7 @@ public class ProcessUpdates extends XC_MethodHook {
                 final long did2 = toUpdateGrouped.keyAt(i);
                 final ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
                 if (ids != null && !ids.isEmpty()) {
+                    serverDeletedMessageIds.addAll(ids);
                     this.redb.batchPutDeletedMessagesAsync(did2, ids);
                     this.redb.postToDbThread(new Runnable() {
                         @Override
@@ -302,16 +305,18 @@ public class ProcessUpdates extends XC_MethodHook {
         InternalUtils.deleteMessages(currentAccount, dialogId, toDelete, true);
     }
 
-    private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
+    private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
         if (update.messages == null || update.messages.isEmpty()) {
             return;
         }
-        long did = -update.channel_id;
-        ArrayList<Integer> acc = (ArrayList) channelDeleted.get(did);
-        if (acc == null) {
-            acc = new ArrayList<>();
-            channelDeleted.put(did, acc);
+        ArrayList<Integer> list = channelDeleted.get(update.channel_id);
+        if (list == null) {
+            list = new ArrayList<>();
+            channelDeleted.put(update.channel_id, list);
         }
-        acc.addAll(update.messages);
+        for (Integer id : update.messages) {
+            MessageObject obj = MessageUtils.getMessage(currentAccount, update.channel_id != 0 ? -update.channel_id : 0L, id);
+            list.add(id);
+        }
     }
 }
