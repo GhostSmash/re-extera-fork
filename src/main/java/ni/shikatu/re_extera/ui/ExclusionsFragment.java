@@ -175,8 +175,8 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         String dialogName = getDialogName(exception.dialogId);
         BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
         builder.setTitle(dialogName);
-        CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.DELETE_FROM_EXCLUSIONS};
-        int[] icons = {R.drawable.msg_openprofile, R.drawable.msg_archive_hide, R.drawable.floating_pencil, R.drawable.msg_delete};
+        CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.EDIT_FILTER, Localization.DELETE_FROM_EXCLUSIONS};
+        int[] icons = {R.drawable.msg_openprofile, R.drawable.msg_archive_hide, R.drawable.floating_pencil, R.drawable.msg_permissions, R.drawable.msg_delete};
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
@@ -199,6 +199,9 @@ public class ExclusionsFragment extends BasePreferencesActivity {
                 showEditTypingDialog(exception, position);
                 break;
             case 3:
+                showEditFilterDialog(exception, position);
+                break;
+            case 4:
                 showDeleteConfirmation(exception, position);
                 break;
         }
@@ -254,6 +257,26 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
     }
 
+    private void showEditFilterDialog(final DialogExclusion exception, final int position) {
+        new ExclusionUtils.ExclusionFilterDialog(getContext(), exception.dialogId, new Runnable() { 
+            @Override // java.lang.Runnable
+            public final void run() {
+                lambda$showEditFilterDialog$3a(exception, position);
+            }
+        }).show();
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public /* synthetic */ void lambda$showEditFilterDialog$3a(DialogExclusion exception, int position) {
+        DialogExclusion updated = ReExteraDb.get().getException(exception.dialogId);
+        if (updated != null) {
+            this.exceptions.set(position, updated);
+            if (getAdapter() != null) {
+                getAdapter().update(true);
+            }
+        }
+    }
+
     private void showDeleteConfirmation(final DialogExclusion exception, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(Localization.DELETE_FROM_EXCLUSIONS);
@@ -298,6 +321,9 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
         if (exception.typeExclusion != 0) {
             parts.add(Localization.TYPE_TO + getExclusionText(exception.typeExclusion));
+        }
+        if (exception.filterExclusion != 0) {
+            parts.add(Localization.FILTERS + " " + getExclusionText(exception.filterExclusion));
         }
         if (parts.isEmpty()) {
             return Localization.NO_EXLCUSIONS;

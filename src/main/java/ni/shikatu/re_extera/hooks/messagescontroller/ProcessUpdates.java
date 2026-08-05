@@ -48,11 +48,23 @@ public class ProcessUpdates extends XC_MethodHook {
                 if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
                     if (nm.message != null) {
+                        if (ni.shikatu.re_extera.settings.Settings.getSaveOneTimeMessages()) {
+                            if (nm.message.ttl > 0) nm.message.ttl = 0;
+                            if (nm.message.media != null && nm.message.media.ttl_seconds > 0) {
+                                nm.message.media.ttl_seconds = 0;
+                            }
+                        }
                         midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
                     if (ncm.message != null) {
+                        if (ni.shikatu.re_extera.settings.Settings.getSaveOneTimeMessages()) {
+                            if (ncm.message.ttl > 0) ncm.message.ttl = 0;
+                            if (ncm.message.media != null && ncm.message.media.ttl_seconds > 0) {
+                                ncm.message.media.ttl_seconds = 0;
+                            }
+                        }
                         midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
                     }
                 }

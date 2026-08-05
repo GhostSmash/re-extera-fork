@@ -34,6 +34,7 @@ public class Localization {
     public static String WORK_IN_BACKGROUND;
     public static String DISABLE_BLUR;
     public static String EDIT_READ;
+    public static String EDIT_FILTER;
     public static String EDIT_REGEX_FILTER;
     public static String EDIT_REGEX_PATTERN;
     public static String EDIT_SHADOWBAN;
@@ -214,6 +215,7 @@ public class Localization {
             OPEN_CHAT = "Открыть чат";
             EDIT_TYPING = "Изменить исключение неписалки";
             EDIT_READ = "Изменить исключение нечиталки";
+            EDIT_FILTER = "Изменить исключение фильтров";
             DELETE_FROM_EXCLUSIONS = "Удалить из исключений";
             UNKNOWN_DIALOG = "Неизвестный диалог";
             NO_EXLCUSIONS = "Нет исключений";
@@ -345,6 +347,7 @@ public class Localization {
             OPEN_CHAT = "Відкрити чат";
             EDIT_TYPING = "Змінити виняток неписалки";
             EDIT_READ = "Змінити виняток нечиталки";
+            EDIT_FILTER = "Змінити виняток фільтрів";
             DELETE_FROM_EXCLUSIONS = "Видалити з винятків";
             UNKNOWN_DIALOG = "Невідомий діалог";
             NO_EXLCUSIONS = "Немає винятків";
@@ -473,6 +476,7 @@ public class Localization {
         OPEN_CHAT = "Open chat";
         EDIT_TYPING = "Edit typing exclusion";
         EDIT_READ = "Edit read exclusion";
+        EDIT_FILTER = "Edit filter exclusion";
         DELETE_FROM_EXCLUSIONS = "Delete from exclusions";
         UNKNOWN_DIALOG = "Unknown dialog";
         NO_EXLCUSIONS = "No exclusions";

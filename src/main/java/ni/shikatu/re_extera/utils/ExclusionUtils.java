@@ -14,7 +14,8 @@ public final class ExclusionUtils {
 
     public enum Kind {
         READING,
-        TYPING
+        TYPING,
+        FILTER
     }
 
     private ExclusionUtils() {
@@ -37,6 +38,18 @@ public final class ExclusionUtils {
 
         public ExclusionTypingDialog(Context context, long dialogId, Runnable onChoice) {
             this.dialog = new ExclusionDialog(context, dialogId, Kind.TYPING, onChoice);
+        }
+
+        public void show() {
+            this.dialog.show();
+        }
+    }
+
+    public static final class ExclusionFilterDialog {
+        private final ExclusionDialog dialog;
+
+        public ExclusionFilterDialog(Context context, long dialogId, Runnable onChoice) {
+            this.dialog = new ExclusionDialog(context, dialogId, Kind.FILTER, onChoice);
         }
 
         public void show() {
@@ -104,7 +117,9 @@ public final class ExclusionUtils {
         }
 
         private String verb() {
-            return this.kind == Kind.READING ? Localization.READ : Localization.TYPE;
+            if (this.kind == Kind.READING) return Localization.READ;
+            if (this.kind == Kind.FILTER) return Localization.FILTERS;
+            return Localization.TYPE;
         }
 
         private RadioColorCell buildCell(String text) {
@@ -119,6 +134,8 @@ public final class ExclusionUtils {
         private void setValue(int mode) {
             if (this.kind == Kind.READING) {
                 ReExteraDb.get().setDialogReadingAsync(this.dialogId, mode);
+            } else if (this.kind == Kind.FILTER) {
+                ReExteraDb.get().setDialogFilterAsync(this.dialogId, mode);
             } else {
                 ReExteraDb.get().setDialogTypingAsync(this.dialogId, mode);
             }
@@ -134,6 +151,8 @@ public final class ExclusionUtils {
             int current;
             if (this.kind == Kind.READING) {
                 current = ReExteraDb.get().getDialogReading(this.dialogId);
+            } else if (this.kind == Kind.FILTER) {
+                current = ReExteraDb.get().getDialogFilter(this.dialogId);
             } else {
                 current = ReExteraDb.get().getDialogTyping(this.dialogId);
             }
@@ -142,7 +161,10 @@ public final class ExclusionUtils {
             this.cellDefault.setChecked(current == 0, false);
             AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
             builder.setView(this.layout);
-            builder.setTitle(this.kind == Kind.READING ? Localization.EXCEPTION_READING_TEXT : Localization.EXCEPTION_TYPING_TEXT);
+            String title = Localization.EXCEPTION_TYPING_TEXT;
+            if (this.kind == Kind.READING) title = Localization.EXCEPTION_READING_TEXT;
+            if (this.kind == Kind.FILTER) title = Localization.EDIT_FILTER;
+            builder.setTitle(title);
             builder.show();
         }
     }

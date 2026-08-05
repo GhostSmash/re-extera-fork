@@ -169,6 +169,9 @@ public final class MessageUtils {
         if (text == null || text.isEmpty()) {
             return false;
         }
+        if (ni.shikatu.re_extera.db.ReExteraDb.get().isFilterExcluded(message.getDialogId())) {
+            return false;
+        }
         for (Pattern pattern : patterns) {
             try {
                 if (pattern.matcher(text).find()) {
