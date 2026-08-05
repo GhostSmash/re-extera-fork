@@ -82,17 +82,9 @@ public class ProcessUpdates extends XC_MethodHook {
 
     private void flushChannelDeleted(LongSparseArray<ArrayList<Integer>> channelDeleted, final int currentAccount) {
         for (int i = 0; i < channelDeleted.size(); i++) {
-            final long did = channelDeleted.keyAt(i);
             final ArrayList<Integer> ids = (ArrayList) channelDeleted.valueAt(i);
             if (ids != null && !ids.isEmpty()) {
                 serverDeletedMessageIds.addAll(ids);
-                this.redb.batchPutDeletedMessagesAsync(did, ids);
-                this.redb.postToDbThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MessageUtils.forceUpdateViews(currentAccount, did, ids);
-                    }
-                });
             }
         }
     }
@@ -229,74 +221,33 @@ public class ProcessUpdates extends XC_MethodHook {
         return 0L;
     }
 
-    private void processEditedMessage(TLRPC.Message message, int currentAccount) {
-        long did = MessageUtils.getDialogIdFromMessage(message);
+    private void processEditedMessage(final TLRPC.Message message, final int currentAccount) {
+        final long did = MessageUtils.getDialogIdFromMessage(message);
         if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
             org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.MessagesController.getInstance(currentAccount).getUser(did);
             if (user != null && user.bot) {
                 return;
             }
         }
-        MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
-        if (oldObj != null && !oldObj.isOut()) {
-            if (!this.redb.messageHasSavedEdits(did, message.id)) {
-                this.redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
+        this.redb.postToDbThread(new Runnable() {
+            @Override
+            public void run() {
+                MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
+                if (oldObj != null && !oldObj.isOut()) {
+                    if (!redb.messageHasSavedEdits(did, message.id)) {
+                        redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
+                    }
+                    redb.saveNewVersionMessageAsync(did, message.id, message);
+                }
             }
-            this.redb.saveNewVersionMessageAsync(did, message.id, message);
-        }
+        });
     }
 
     private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, final int currentAccount, android.util.SparseArray<Long> midToDid) {
         if (update.messages == null) {
             return;
         }
-        MessagesController controller = MessagesController.getInstance(currentAccount);
-        LongSparseArray<ArrayList<Integer>> toUpdateGrouped = new LongSparseArray<>();
-        synchronized (controller) {
-            Iterator it = update.messages.iterator();
-            while (it.hasNext()) {
-                int id = ((Integer) it.next()).intValue();
-                long did = 0;
-                MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
-                if (obj != null) {
-                    if (obj.messageOwner != null && obj.messageOwner.peer_id instanceof TLRPC.TL_peerChannel) {
-                        continue;
-                    }
-                    did = obj.getDialogId();
-                } else if (midToDid != null && midToDid.indexOfKey(id) >= 0) {
-                    did = midToDid.get(id);
-                }
-                
-                if (did != 0) {
-                    if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
-                        org.telegram.tgnet.TLRPC.User user = controller.getUser(did);
-                        if (user != null && user.bot) {
-                            continue;
-                        }
-                    }
-                    ArrayList<Integer> list = (ArrayList) toUpdateGrouped.get(did);
-                    if (list == null) {
-                        list = new ArrayList<>();
-                        toUpdateGrouped.put(did, list);
-                    }
-                    list.add(Integer.valueOf(obj != null ? obj.getId() : id));
-                }
-            }
-            for (int i = 0; i < toUpdateGrouped.size(); i++) {
-                final long did2 = toUpdateGrouped.keyAt(i);
-                final ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
-                if (ids != null && !ids.isEmpty()) {
-                    serverDeletedMessageIds.addAll(ids);
-                    this.redb.batchPutDeletedMessagesAsync(did2, ids);
-                    this.redb.postToDbThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            MessageUtils.forceUpdateViews(currentAccount, did2, ids);
-                        }
-                    });
-                }
-            }
-        }
+        serverDeletedMessageIds.addAll(update.messages);
     }
 
     private void processDeleteScheduledMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages update, int currentAccount) {

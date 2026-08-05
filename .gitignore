@@ -3,3 +3,5 @@
 /.omo
 /local.properties
 __pycache__/
+.venv/
+loader/builds/
