@@ -22,7 +22,7 @@ import org.telegram.tgnet.TLRPC;
 public final class ReExteraDb {
     private static final int BATCH_IN_SIZE = 500;
     public static final String DB_NAME = "re_extera.db";
-    public static final int DB_VERSION = 12;
+    public static final int DB_VERSION = 13;
     private static final long DELETED_KEYS_TTL_MS = TimeUnit.DAYS.toMillis(30);
     private static volatile ReExteraDb instance;
     private final Handler dbHandler;
@@ -1222,7 +1222,14 @@ public final class ReExteraDb {
                 db.execSQL("CREATE TABLE IF NOT EXISTS last_online_users(user_id INTEGER PRIMARY KEY, online_ts INTEGER NOT NULL)");
             }
             if (oldV < 12) {
-                db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_filter INTEGER DEFAULT 0 NOT NULL");
+                try {
+                    db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_filter INTEGER DEFAULT 0 NOT NULL");
+                } catch (Exception ignore) {}
+            }
+            if (oldV < 13) {
+                try {
+                    db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_filter INTEGER DEFAULT 0 NOT NULL");
+                } catch (Exception ignore) {}
             }
         }
     }

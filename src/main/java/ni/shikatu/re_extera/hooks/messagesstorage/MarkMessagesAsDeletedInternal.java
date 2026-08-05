@@ -35,12 +35,7 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
             if (originalMessages != null) {
                 for (Integer id : originalMessages) {
                     if (id != null && id > 0) {
-                        MessageObject obj = MessageUtils.getMessage(currentAccount, did, id);
-                        if (obj != null && obj.isOut() && !ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates.serverDeletedMessageIds.contains(id)) {
-                            tempIds.add(id);
-                        } else {
-                            validIds.add(id);
-                        }
+                        validIds.add(id);
                     } else if (id != null) {
                         tempIds.add(id);
                     }

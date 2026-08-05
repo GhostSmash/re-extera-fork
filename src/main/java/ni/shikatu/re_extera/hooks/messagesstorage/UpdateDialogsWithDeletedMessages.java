@@ -40,12 +40,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
             ArrayList<Integer> tempIds = new ArrayList<>();
             for (Integer id : ids) {
                 if (id != null && id > 0) {
-                    MessageObject obj = MessageUtils.getMessage(currentAccount, did, id);
-                    if (obj != null && obj.isOut() && !ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates.serverDeletedMessageIds.contains(id)) {
-                        tempIds.add(id);
-                    } else {
-                        validIds.add(id);
-                    }
+                    validIds.add(id);
                 } else if (id != null) {
                     tempIds.add(id);
                 }
