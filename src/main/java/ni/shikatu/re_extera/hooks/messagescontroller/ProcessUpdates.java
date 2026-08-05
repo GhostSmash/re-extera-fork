@@ -47,12 +47,12 @@ public class ProcessUpdates extends XC_MethodHook {
             for (TLRPC.Update update : updates.updates) {
                 if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-                    if (nm.message != null && !nm.message.out) {
+                    if (nm.message != null) {
                         midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-                    if (ncm.message != null && !ncm.message.out) {
+                    if (ncm.message != null) {
                         midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
                     }
                 }
@@ -114,7 +114,7 @@ public class ProcessUpdates extends XC_MethodHook {
             processDeleteMessages(del, currentAccount, midToDid);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
             org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
-            processDeleteChannelMessages(del2, channelDeleted, currentAccount);
+            processDeleteChannelMessages(del2, channelDeleted);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
             keep = !shadowbanFilterHideDialog(newMsg.message);
@@ -305,18 +305,16 @@ public class ProcessUpdates extends XC_MethodHook {
         InternalUtils.deleteMessages(currentAccount, dialogId, toDelete, true);
     }
 
-    private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
+    private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
         if (update.messages == null || update.messages.isEmpty()) {
             return;
         }
-        ArrayList<Integer> list = channelDeleted.get(update.channel_id);
-        if (list == null) {
-            list = new ArrayList<>();
-            channelDeleted.put(update.channel_id, list);
+        long did = -update.channel_id;
+        ArrayList<Integer> acc = (ArrayList) channelDeleted.get(did);
+        if (acc == null) {
+            acc = new ArrayList<>();
+            channelDeleted.put(did, acc);
         }
-        for (Integer id : update.messages) {
-            MessageObject obj = MessageUtils.getMessage(currentAccount, update.channel_id != 0 ? -update.channel_id : 0L, id);
-            list.add(id);
-        }
+        acc.addAll(update.messages);
     }
 }
