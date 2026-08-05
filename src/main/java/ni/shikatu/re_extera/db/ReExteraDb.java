@@ -29,6 +29,7 @@ public final class ReExteraDb {
     private final HandlerThread dbThread;
     private final Helper helper;
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, Boolean> filterExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static synchronized ReExteraDb init(Context context) {
         if (instance == null) {
@@ -53,6 +54,31 @@ public final class ReExteraDb {
                 pruneStaleEntries();
             }
         }, TimeUnit.SECONDS.toMillis(30L));
+        this.dbHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                loadFilterExceptionsCache();
+            }
+        });
+    }
+
+    private void loadFilterExceptionsCache() {
+        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
+        android.database.Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT did FROM exception_users WHERE exception_filter != 0", null);
+            if (c.moveToFirst()) {
+                do {
+                    filterExceptionsCache.put(c.getLong(0), Boolean.TRUE);
+                } while (c.moveToNext());
+            }
+        } catch (Throwable e) {
+            ni.shikatu.re_extera.Main.log("Failed to load filterExceptionsCache", e);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
     }
 
     public void postToDbThread(Runnable r) {
@@ -507,7 +533,7 @@ public final class ReExteraDb {
     }
 
     public boolean isFilterExcluded(long did) {
-        return getDialogFilter(did) != 0;
+        return filterExceptionsCache.containsKey(did);
     }
 
     private int getExceptionColumn(long did, String column) {
@@ -570,6 +596,11 @@ public final class ReExteraDb {
     }
 
     public void setDialogFilterAsync(final long did, final int value) {
+        if (value != 0) {
+            filterExceptionsCache.put(did, Boolean.TRUE);
+        } else {
+            filterExceptionsCache.remove(did);
+        }
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
