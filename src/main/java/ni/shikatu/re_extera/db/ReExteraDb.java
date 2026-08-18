@@ -30,6 +30,17 @@ public final class ReExteraDb {
     private final Helper helper;
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, Boolean> filterExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<Integer>> deletedKeysCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private java.util.Set<Integer> getOrCreateDeletedSet(long did) {
+        java.util.Set<Integer> set = deletedKeysCache.get(did);
+        if (set == null) {
+            java.util.Set<Integer> newSet = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
+            java.util.Set<Integer> oldSet = deletedKeysCache.putIfAbsent(did, newSet);
+            set = oldSet != null ? oldSet : newSet;
+        }
+        return set;
+    }
 
     public static synchronized ReExteraDb init(Context context) {
         if (instance == null) {
@@ -58,8 +69,30 @@ public final class ReExteraDb {
             @Override
             public void run() {
                 loadFilterExceptionsCache();
+                loadDeletedKeysCache();
             }
         });
+    }
+
+    private void loadDeletedKeysCache() {
+        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
+        android.database.Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT did, mid FROM deleted_keys", null);
+            if (c.moveToFirst()) {
+                do {
+                    long did = c.getLong(0);
+                    int mid = c.getInt(1);
+                    getOrCreateDeletedSet(did).add(mid);
+                } while (c.moveToNext());
+            }
+        } catch (Throwable e) {
+            ni.shikatu.re_extera.Main.log("Failed to load deletedKeysCache: %s", e.getMessage());
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
     }
 
     private void loadFilterExceptionsCache() {
@@ -114,6 +147,7 @@ public final class ReExteraDb {
     }
 
     public void putDeletedMessageAsync(final long did, final int mid) {
+        getOrCreateDeletedSet(did).add(mid);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -171,6 +205,7 @@ public final class ReExteraDb {
         if (mids == null || mids.isEmpty()) {
             return;
         }
+        getOrCreateDeletedSet(did).addAll(mids);
         final ArrayList<Integer> copy = new ArrayList<>(mids);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
@@ -181,11 +216,18 @@ public final class ReExteraDb {
     }
 
     public boolean messageIsDeleted(long did, int mid) {
+        java.util.Set<Integer> set = deletedKeysCache.get(did);
+        if (set != null && set.contains(mid)) {
+            return true;
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
             Cursor c = db.rawQuery("SELECT 1 FROM deleted_keys WHERE did=? AND mid=? LIMIT 1", new String[]{String.valueOf(did), String.valueOf(mid)});
             try {
                 boolean zMoveToFirst = c.moveToFirst();
+                if (zMoveToFirst) {
+                    getOrCreateDeletedSet(did).add(mid);
+                }
                 if (c != null) {
                     c.close();
                 }
@@ -207,6 +249,9 @@ public final class ReExteraDb {
     }
 
     public boolean messageIsDeleted(MessageObject msg) {
+        if (msg == null) {
+            return false;
+        }
         return messageIsDeleted(msg.getDialogId(), msg.getId());
     }
 
@@ -239,6 +284,10 @@ public final class ReExteraDb {
     }
 
     public ArrayList<Integer> allMessageIdsByDid(long did) {
+        java.util.Set<Integer> set = deletedKeysCache.get(did);
+        if (set != null && !set.isEmpty()) {
+            return new ArrayList<>(set);
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<Integer> result = new ArrayList<>();
         try {
@@ -269,6 +318,10 @@ public final class ReExteraDb {
     public void clearMessages(long did, List<Integer> mids) {
         if (mids == null || mids.isEmpty()) {
             return;
+        }
+        java.util.Set<Integer> set = deletedKeysCache.get(did);
+        if (set != null) {
+            set.removeAll(mids);
         }
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
@@ -1066,6 +1119,8 @@ public final class ReExteraDb {
     }
 
     public void clearDatabaseOnly() {
+        deletedKeysCache.clear();
+        lastOnlineCache.clear();
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
         try {
@@ -1093,6 +1148,8 @@ public final class ReExteraDb {
                 int removed = st.executeUpdateDelete();
                 if (removed > 0) {
                     Main.log("pruneStaleEntries: removed %d old deleted_keys entries", Integer.valueOf(removed));
+                    deletedKeysCache.clear();
+                    loadDeletedKeysCache();
                 }
                 if (st != null) {
                     st.close();
