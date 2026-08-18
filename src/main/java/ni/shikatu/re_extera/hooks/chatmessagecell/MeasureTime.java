@@ -56,7 +56,10 @@ public class MeasureTime extends XC_MethodHook {
         if (obj == null || (message = obj.messageOwner) == null) {
             return;
         }
-        long did = MessageUtils.getDialogIdFromMessage(message);
+        long did = obj.getDialogId();
+        if (did == 0 && message != null) {
+            did = MessageUtils.getDialogIdFromMessage(message);
+        }
         int mid = message.id;
         boolean isDeleted = did == -999999999L;
         if (!isDeleted) {

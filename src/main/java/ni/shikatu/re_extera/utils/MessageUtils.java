@@ -31,16 +31,13 @@ public final class MessageUtils {
     }
 
     public static long getDialogIdFromMessage(TLRPC.Message msg) {
-        if (msg.peer_id instanceof TLRPC.TL_peerUser) {
-            return msg.peer_id.user_id;
+        if (msg == null) {
+            return 0L;
         }
-        if (msg.peer_id instanceof TLRPC.TL_peerChat) {
-            return -msg.peer_id.chat_id;
+        if (msg.dialog_id != 0) {
+            return msg.dialog_id;
         }
-        if (msg.peer_id instanceof TLRPC.TL_peerChannel) {
-            return -msg.peer_id.channel_id;
-        }
-        return 0L;
+        return MessageObject.getDialogId(msg);
     }
 
     public static MessageObject getMessage(int currentAccount, long did, int mid) {
