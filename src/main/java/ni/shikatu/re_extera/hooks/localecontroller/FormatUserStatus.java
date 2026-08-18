@@ -25,17 +25,10 @@ public class FormatUserStatus extends XC_MethodHook {
         if (isHidden) {
             int wasOnline = ReExteraDb.get().getLastOnline(user.id);
             if (wasOnline > 0) {
-                int currentTime = (int) (System.currentTimeMillis() / 1000L);
                 origStatusLocal.set(user.status);
-                if (currentTime - wasOnline < 60) {
-                    TLRPC.TL_userStatusOnline exactStatus = new TLRPC.TL_userStatusOnline();
-                    exactStatus.expires = wasOnline + 60;
-                    user.status = exactStatus;
-                } else {
-                    TLRPC.TL_userStatusOffline exactStatus = new TLRPC.TL_userStatusOffline();
-                    exactStatus.expires = wasOnline;
-                    user.status = exactStatus;
-                }
+                TLRPC.TL_userStatusOffline exactStatus = new TLRPC.TL_userStatusOffline();
+                exactStatus.expires = wasOnline;
+                user.status = exactStatus;
             }
         }
     }
