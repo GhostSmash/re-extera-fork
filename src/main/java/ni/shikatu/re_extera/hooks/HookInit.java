@@ -156,8 +156,10 @@ public final class HookInit {
         // Telegram 12.9.0 changed method signatures and obfuscated internal methods.
         // markMessagesAsDeleted: (long, ArrayList, boolean, boolean, int, int)
         tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        // Fallbacks for older Telegram versions
+        // Fallbacks for older Telegram versions and channel single-message variants
         tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+        tryHook("MessagesStorage.markMessagesAsDeleted(channel)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
+        tryHook("MessagesStorage.markMessagesAsDeletedInternal(channel)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
 
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
@@ -187,6 +189,7 @@ public final class HookInit {
         tryHook("ChatActivity.fillMessageMenu", ChatActivity.class, "fillMessageMenu", new FillMessageMenu(), MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class);
         tryHook("ChatActivity.processSelectedOption", ChatActivity.class, "processSelectedOption", new ProcessSelectedOption(), Integer.TYPE);
         tryHook("LocaleController.formatUserStatus", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class, boolean[].class);
+        tryHook("LocaleController.formatUserStatus(4arg)", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class);
         tryHook("ChatActivity.createView", ChatActivity.class, "createView", new FragmentCreate(), Context.class);
         tryHook("ChatActivity.hasSelectedNoforwardsMessage", ChatActivity.class, "hasSelectedNoforwardsMessage", new HasSelectedNoForwardsMessage(), new Class[0]);
         tryHook("ChatActivity.sendSecretMediaDelete", ChatActivity.class, "sendSecretMediaDelete", new SendSecretMediaDelete(), MessageObject.class);

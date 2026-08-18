@@ -34,12 +34,11 @@ public class ProcessDeletedMessages extends XC_MethodHook {
             }
 
             if (!validIds.isEmpty()) {
-                ni.shikatu.re_extera.db.ReExteraDb.get().postToDbThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, validIds);
-                    }
-                });
+                ni.shikatu.re_extera.db.ReExteraDb.get().batchPutDeletedMessagesAsync(dialogId, validIds);
+                MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, validIds);
+                if (Settings.getSaveAttachments()) {
+                    ni.shikatu.re_extera.utils.AttachmentSaver.saveAttachments(thisObject.getCurrentAccount(), dialogId, validIds);
+                }
             }
 
             ArrayList<Integer> drained = new ArrayList<>(tempIds);

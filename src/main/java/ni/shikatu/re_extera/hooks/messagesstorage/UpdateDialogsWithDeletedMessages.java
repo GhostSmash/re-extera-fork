@@ -48,7 +48,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
 
             if (!validIds.isEmpty()) {
                 Main.log("UpdateDialogsWithDeletedMessages: intercepting %d ids for did=%d (args=%d)", validIds.size(), did, param.args.length);
-                this.redb.lambda$batchPutDeletedMessagesAsync$1(did, validIds);
+                this.redb.batchPutDeletedMessagesAsync(did, validIds);
                 MessageUtils.forceUpdateViews(currentAccount, did, validIds);
             }
 

@@ -28,11 +28,11 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
                 }
             }
             
-            ArrayList<Integer> originalMessages = (ArrayList) param.args[1];
-            
+            Object msgArg = param.args[1];
             ArrayList<Integer> validIds = new ArrayList<>();
             ArrayList<Integer> tempIds = new ArrayList<>();
-            if (originalMessages != null) {
+            if (msgArg instanceof ArrayList) {
+                ArrayList<Integer> originalMessages = (ArrayList<Integer>) msgArg;
                 for (Integer id : originalMessages) {
                     if (id != null && id > 0) {
                         validIds.add(id);
@@ -40,19 +40,24 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
                         tempIds.add(id);
                     }
                 }
+                param.args[1] = tempIds;
+                if (tempIds.isEmpty()) {
+                    param.setResult((Object) null);
+                }
+            } else if (msgArg instanceof Integer) {
+                int mid = ((Integer) msgArg).intValue();
+                if (mid > 0) {
+                    validIds.add(mid);
+                    param.setResult((Object) null);
+                }
             }
 
             if (!validIds.isEmpty()) {
-                this.redb.lambda$batchPutDeletedMessagesAsync$1(did, validIds);
+                this.redb.batchPutDeletedMessagesAsync(did, validIds);
                 MessageUtils.forceUpdateViews(currentAccount, did, validIds);
                 if (Settings.getSaveAttachments()) {
                     ni.shikatu.re_extera.utils.AttachmentSaver.saveAttachments(currentAccount, did, validIds);
                 }
-            }
-            
-            param.args[1] = tempIds;
-            if (tempIds.isEmpty()) {
-                param.setResult((Object) null);
             }
         }
     }
