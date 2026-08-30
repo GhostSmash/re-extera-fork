@@ -183,7 +183,7 @@ class Plugin(BasePlugin):
             
         def fetch():
             try:
-                r = requests.get("https://api.github.com/repos/fossSquad/re-extera/branches", headers={"User-Agent": USER_AGENT})
+                r = requests.get("https://api.github.com/repos/ghostsmash/re-extera-fork/branches", headers={"User-Agent": USER_AGENT})
                 r.raise_for_status()
                 return [b["name"] for b in r.json()]
             except Exception as e:
@@ -212,7 +212,7 @@ class Plugin(BasePlugin):
             
         def fetch():
             try:
-                r = requests.get(f"https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch={branch}&status=success&per_page=10", headers={"User-Agent": USER_AGENT})
+                r = requests.get(f"https://api.github.com/repos/ghostsmash/re-extera-fork/actions/workflows/build.yml/runs?branch={branch}&status=success&per_page=10", headers={"User-Agent": USER_AGENT})
                 r.raise_for_status()
                 return r.json().get("workflow_runs", [])
             except Exception as e:

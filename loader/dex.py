@@ -448,8 +448,8 @@ class Loader:
                 head = str(remote_version)
                 
                 if self.channel == "dev":
-                    head_run = requests.get(f"https://api.github.com/repos/fossSquad/re-extera/actions/runs/{head}", headers={"User-Agent": USER_AGENT}).json()
-                    base_run = requests.get(f"https://api.github.com/repos/fossSquad/re-extera/actions/runs/{base}", headers={"User-Agent": USER_AGENT}).json()
+                    head_run = requests.get(f"https://api.github.com/repos/ghostsmash/re-extera-fork/actions/runs/{head}", headers={"User-Agent": USER_AGENT}).json()
+                    base_run = requests.get(f"https://api.github.com/repos/ghostsmash/re-extera-fork/actions/runs/{base}", headers={"User-Agent": USER_AGENT}).json()
                     head = head_run.get("head_sha", head)
                     base = base_run.get("head_sha", base)
                 
@@ -457,7 +457,7 @@ class Loader:
                     show_dialog("No changes.")
                     return
                     
-                compare_url = f"https://api.github.com/repos/fossSquad/re-extera/compare/{base}...{head}"
+                compare_url = f"https://api.github.com/repos/ghostsmash/re-extera-fork/compare/{base}...{head}"
                 r = requests.get(compare_url, headers={"User-Agent": USER_AGENT})
                 r.raise_for_status()
                 commits = r.json().get("commits", [])
