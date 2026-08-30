@@ -1,7 +1,7 @@
 __id__ = "re_extera_loader_fork"
 __name__ = "re:extera Fork (fixed 12.9.0)"
 __description__ = "Fork with fixed hooks for TG 12.9.0: local premium, deleted messages, ghost mode."
-__author__ = "based on @bleizixPlugins, FOSS recovery by @fossSquad & @migor1103"
+__author__ = "based on @bleizixPlugins, FOSS recovery by @fossSquad & @migor1103, forked by @xssmash"
 __version__ = "1.8.11"
 __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
 __min_version__ = "12.8.1"
