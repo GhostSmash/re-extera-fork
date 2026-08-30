@@ -132,6 +132,45 @@ public final class HookInit {
         });
     }
 
+    /**
+     * Устойчивый к смене сигнатур вариант tryHook: ищет метод по имени и
+     * ТОЧНОМУ количеству параметров вместо точных типов. Переживает
+     * изменение порядка/типов параметров между версиями Telegram, пока их
+     * общее число не меняется. См. ni.shikatu.re_extera.utils.HookLookup.
+     */
+    private void tryHookByArgCount(String name, final Class<?> clazz, final String methodName, final int paramCount, final XC_MethodHook hook) {
+        tryAddHook(name, new HookRegistrar() {
+            @Override
+            public final XC_MethodHook.Unhook register() {
+                java.lang.reflect.Method m = ni.shikatu.re_extera.utils.HookLookup.findByArgCount(clazz, methodName, paramCount);
+                if (m == null) {
+                    ni.shikatu.re_extera.utils.HookLookup.logMiss(name, clazz, methodName);
+                    throw new RuntimeException(new NoSuchMethodException(clazz.getName() + "." + methodName + " with " + paramCount + " args"));
+                }
+                return XposedBridge.hookMethod(m, hook);
+            }
+        });
+    }
+
+    /**
+     * Как tryHookByArgCount, но ищет метод с количеством параметров >= min.
+     * Используется там, где TG со временем расширяет список параметров
+     * (например deleteMessages).
+     */
+    private void tryHookByMinArgCount(String name, final Class<?> clazz, final String methodName, final int minParamCount, final XC_MethodHook hook) {
+        tryAddHook(name, new HookRegistrar() {
+            @Override
+            public final XC_MethodHook.Unhook register() {
+                java.lang.reflect.Method m = ni.shikatu.re_extera.utils.HookLookup.findByMinArgCount(clazz, methodName, minParamCount);
+                if (m == null) {
+                    ni.shikatu.re_extera.utils.HookLookup.logMiss(name, clazz, methodName);
+                    throw new RuntimeException(new NoSuchMethodException(clazz.getName() + "." + methodName + " with >= " + minParamCount + " args"));
+                }
+                return XposedBridge.hookMethod(m, hook);
+            }
+        });
+    }
+
     public void startSendRequestHook() {
         try {
             this.sendRequestHook = XposedBridge.hookMethod(ConnectionsManager.class.getDeclaredMethod("sendRequestInternal", TLObject.class, RequestDelegate.class, RequestDelegateTimestamp.class, QuickAckDelegate.class, WriteToSocketDelegate.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE), new SendRequest());
@@ -148,30 +187,37 @@ public final class HookInit {
         tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);
         tryHook("MessagesController.isUserNoForwards", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), TLRPC.UserFull.class);
         tryHook("MessagesController.checkDeletingTask", MessagesController.class, "checkDeletingTask", new CheckDeletingTask(), Boolean.TYPE);
-        tryHook("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", new DeleteMessages(), ArrayList.class, ArrayList.class, TLRPC.EncryptedChat.class, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
+        // Точная сигнатура нестабильна между версиями TG; ищем по имени + >=7 параметров (как в проверенном рабочем форке).
+        tryHookByMinArgCount("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", 7, new DeleteMessages());
         tryHook("MessagesController.getDialogs", MessagesController.class, "getDialogs", new FilterShadowbannedDialogs(), Integer.TYPE);
         tryHook("MessagesController.sortDialogs", MessagesController.class, "sortDialogs", new SortDialogsHook(), LongSparseArray.class);
         tryHook("MessagesController.processLoadedDialogs", MessagesController.class, "processLoadedDialogs", new ProcessLoadedDialogs(), TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("SecretVoicePlayer.dismiss", SecretVoicePlayer.class, "dismiss", new SecretVoicePlayerDismiss(), new Class[0]);
-        // Telegram 12.9.0 changed method signatures and obfuscated internal methods.
-        // markMessagesAsDeleted: (long, ArrayList, boolean, boolean, int, int)
-        tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        // Fallbacks for older Telegram versions and channel single-message variants
-        tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        tryHook("MessagesStorage.markMessagesAsDeleted(channel)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
-        tryHook("MessagesStorage.markMessagesAsDeletedInternal(channel)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
+        // Точные сигнатуры этих методов меняются между версиями TG (порядок/типы
+        // long vs int, добавление параметров). Ищем по имени + точному количеству
+        // параметров вместо жёстких типов - переживает такие изменения.
+        // markMessagesAsDeleted(Internal): обычно 5 или 6 параметров в зависимости от версии.
+        tryHookByArgCount("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", 6, new MarkMessagesAsDeletedInternal());
+        tryHookByArgCount("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", 5, new MarkMessagesAsDeletedInternal());
 
-        // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
-        // Fallbacks for older Telegram versions
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessages_old", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
+        // updateDialogsWithDeletedMessages(Internal): 4 или 5 параметров в зависимости от версии.
+        tryHookByArgCount("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", 4, new UpdateDialogsWithDeletedMessages());
+        tryHookByArgCount("MessagesStorage.updateDialogsWithDeletedMessages_5arg", MessagesStorage.class, "updateDialogsWithDeletedMessages", 5, new UpdateDialogsWithDeletedMessages());
+        tryHookByArgCount("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", 4, new UpdateDialogsWithDeletedMessages());
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
         if (anyAccountIsPremium()) {
             Settings.setLocalPremium(false);
         }
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
+
+        // "Локальный премиум": одного подмена isPremium() недостаточно, т.к. UI
+        // рисует значок/цвет ника по полю TLRPC.User.premium самого объекта.
+        // Патчим объект в точках, где текущий юзер обновляется/кладётся в кэш.
+        tryHookByArgCount("UserConfig.setCurrentUser", UserConfig.class, "setCurrentUser", 1, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.SetCurrentUserHook());
+        tryHookByArgCount("MessagesController.putUser(2arg)", MessagesController.class, "putUser", 2, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUserHook());
+        tryHookByArgCount("MessagesController.putUser(3arg)", MessagesController.class, "putUser", 3, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUserHook());
+        tryHookByArgCount("MessagesController.putUsers(premium)", MessagesController.class, "putUsers", 2, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUsersHook());
         try {
             Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
             tryHook("WindowManagerImpl.addView", clazz, "addView", new WindowManagerImpl(), View.class, ViewGroup.LayoutParams.class);
@@ -189,7 +235,6 @@ public final class HookInit {
         tryHook("ChatActivity.fillMessageMenu", ChatActivity.class, "fillMessageMenu", new FillMessageMenu(), MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class);
         tryHook("ChatActivity.processSelectedOption", ChatActivity.class, "processSelectedOption", new ProcessSelectedOption(), Integer.TYPE);
         tryHook("LocaleController.formatUserStatus", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class, boolean[].class);
-        tryHook("LocaleController.formatUserStatus(4arg)", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class);
         tryHook("ChatActivity.createView", ChatActivity.class, "createView", new FragmentCreate(), Context.class);
         tryHook("ChatActivity.hasSelectedNoforwardsMessage", ChatActivity.class, "hasSelectedNoforwardsMessage", new HasSelectedNoForwardsMessage(), new Class[0]);
         tryHook("ChatActivity.sendSecretMediaDelete", ChatActivity.class, "sendSecretMediaDelete", new SendSecretMediaDelete(), MessageObject.class);
