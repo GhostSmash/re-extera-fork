@@ -57,8 +57,8 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
     private FrameLayout createStickerView() {
         FrameLayout frameLayout = new FrameLayout(getContext());
         StickerImageView stickerImageView = new StickerImageView(getContext(), getCurrentAccount());
-        stickerImageView.setStickerPackName("fuki_dum_pjsk_pack");
-        stickerImageView.setStickerNum(3);
+        stickerImageView.setStickerPackName("ReexteraXssmash");
+        stickerImageView.setStickerNum(0);
         stickerImageView.setAspectFit(true);
         frameLayout.addView((View) stickerImageView, (ViewGroup.LayoutParams) new FrameLayout.LayoutParams(AndroidUtilities.dp(130.0f), AndroidUtilities.dp(130.0f), 17));
         frameLayout.setMinimumHeight(AndroidUtilities.dp(150.0f));
