@@ -381,6 +381,20 @@ public final class Settings {
         putBool("local_premium", v);
     }
 
+    // Кэш "запомненных" визуальных премиум-полей (peer color / profile color /
+    // emoji status), т.к. сервер не присылает их без реального премиума -
+    // если юзер когда-то видел их у себя (например включив премиум ранее),
+    // мы сохраняем последние известные значения и восстанавливаем визуально
+    // при включённом "Локальный премиум". Значения хранятся как их
+    // сериализованное TLRPC-представление в base64, per-account.
+    public static String getCachedPremiumField(int account, String fieldKey) {
+        return getString("premium_cache_" + account + "_" + fieldKey, null);
+    }
+
+    public static void setCachedPremiumField(int account, String fieldKey, String base64Value) {
+        putString("premium_cache_" + account + "_" + fieldKey, base64Value);
+    }
+
     public static boolean getDisableAds() {
         return getBool("disable_ads", false);
     }
