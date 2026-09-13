@@ -22,7 +22,6 @@ import org.telegram.ui.Components.UniversalAdapter;
  * сохранять ли собственные правки).
  */
 public class EditHistorySettingsFragment extends BasePreferencesActivityExtended {
-    private boolean isExpanded;
     private boolean statsLoaded;
     private int trackedMessageCount;
     private long storageBytes;
@@ -43,48 +42,30 @@ public class EditHistorySettingsFragment extends BasePreferencesActivityExtended
     }
 
     private UItem toggleUItem() {
-        // Клик по самому чекбоксу (первый OnClickListener в конструкторе) переключает
-        // саму настройку. item.clickCallback - отдельный обработчик клика по строке/
-        // стрелке разворачивания, меняющий только видимость доп. пунктов. Раньше оба
-        // делали одно и то же (переключали настройку) - отсюда визуальный сбой:
-        // виджет получал два конфликтующих действия на разные части себя же.
-        UItem item = UItem.asExteraExpandableSwitch(EditHistoryIds.TOGGLE_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE, null, new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
-                if (Settings.getSaveEditedMessages()) {
-                    refreshStats();
-                }
-                EditHistorySettingsFragment.this.listView.adapter.update(true);
-            }
-        });
+        UItem item = UItem.asCheck(EditHistoryIds.TOGGLE_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE);
         item.setChecked(Settings.getSaveEditedMessages());
-        item.setCollapsed(!this.isExpanded);
-        item.clickCallback = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditHistorySettingsFragment.this.isExpanded = !EditHistorySettingsFragment.this.isExpanded;
-                EditHistorySettingsFragment.this.listView.adapter.update(true);
-            }
-        };
         return item;
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        boolean enabled = Settings.getSaveEditedMessages();
         items.add(toggleUItem().setLinkAlias("reExteraEditHistoryToggle", this));
-        if (this.isExpanded) {
-            items.add(UItem.asCheck(EditHistoryIds.SAVE_SELF_EDITS_ID.getId(), Localization.SAVE_SELF_EDITS).setChecked(Settings.getSaveSelfEdits()).setLinkAlias("reExteraSaveSelfEdits", this));
-            items.add(UItem.asShadow());
 
-            if (!this.statsLoaded) {
-                refreshStats();
-            }
-            String storageLine = Localization.EDIT_HISTORY_STORAGE_USED + ": " + AndroidUtilities.formatFileSize(this.storageBytes);
-            String trackedLine = Localization.EDIT_HISTORY_TRACKED_MESSAGES + ": " + this.trackedMessageCount;
-            items.add(UItem.asHeader(storageLine + "  •  " + trackedLine));
+        // Пункты всегда видны (не схлопываются), но задизейблены/притемнены,
+        // когда запись истории выключена - вместо прежнего полного скрытия
+        // при !isExpanded, которое, похоже, и создавало впечатление "не
+        // открывается" (пункты пропадали целиком, а не просто гасли).
+        items.add(UItem.asCheck(EditHistoryIds.SAVE_SELF_EDITS_ID.getId(), Localization.SAVE_SELF_EDITS).setChecked(Settings.getSaveSelfEdits()).setEnabled(enabled).setLinkAlias("reExteraSaveSelfEdits", this));
+        items.add(UItem.asShadow());
 
-            items.add(UItem.asButton(EditHistoryIds.CLEAR_HISTORY_ID.getId(), Localization.CLEAR_EDIT_HISTORY).setLinkAlias("reExteraClearEditHistory", this));
+        if (enabled && !this.statsLoaded) {
+            refreshStats();
         }
+        String storageLine = Localization.EDIT_HISTORY_STORAGE_USED + ": " + AndroidUtilities.formatFileSize(this.storageBytes);
+        String trackedLine = Localization.EDIT_HISTORY_TRACKED_MESSAGES + ": " + this.trackedMessageCount;
+        items.add(UItem.asHeader(storageLine + "  •  " + trackedLine));
+
+        items.add(UItem.asButton(EditHistoryIds.CLEAR_HISTORY_ID.getId(), Localization.CLEAR_EDIT_HISTORY).setEnabled(enabled).setLinkAlias("reExteraClearEditHistory", this));
     }
 
     private void refreshStats() {
@@ -103,10 +84,22 @@ public class EditHistorySettingsFragment extends BasePreferencesActivityExtended
 
     public void onClick(UItem item, View view, int position, float x, float y) {
         int id = item.id;
-        if (id == EditHistoryIds.SAVE_SELF_EDITS_ID.getId()) {
+        if (id == EditHistoryIds.TOGGLE_ID.getId()) {
+            Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
+            if (Settings.getSaveEditedMessages()) {
+                refreshStats();
+            }
+            this.listView.adapter.update(true);
+        } else if (id == EditHistoryIds.SAVE_SELF_EDITS_ID.getId()) {
+            if (!Settings.getSaveEditedMessages()) {
+                return;
+            }
             Settings.setSaveSelfEdits(!Settings.getSaveSelfEdits());
             refreshCheckBox(item, position, Settings.getSaveSelfEdits());
         } else if (id == EditHistoryIds.CLEAR_HISTORY_ID.getId()) {
+            if (!Settings.getSaveEditedMessages()) {
+                return;
+            }
             showClearHistoryDialog();
         }
     }

@@ -148,9 +148,13 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 if (UserConfig.getInstance(getCurrentAccount()).isPremium() && !Settings.getLocalPremium()) {
                     BulletinFactory.of(this).createEmojiBulletin("❌", Localization.CANT_USE_WITH_PREMIUM).show();
                 } else {
-                    Settings.setLocalPremium(!Settings.getLocalPremium());
+                    boolean newValue = !Settings.getLocalPremium();
+                    Settings.setLocalPremium(newValue);
                     refreshCheckBox(item, position, Settings.getLocalPremium());
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
+                    if (newValue) {
+                        BulletinFactory.of(this).createEmojiBulletin("⭐", Localization.LOCAL_PREMIUM_RESTART_NOTICE).show();
+                    }
                 }
                 break;
             case 6:
