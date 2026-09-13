@@ -1,6 +1,6 @@
 <img src="images/logo.png" width="150" align="left"/>
 
-## re:extera
+re:extera
 *[Licensed under the GNU General Public License v3.0](LICENSE)*
 
 Plugin for exteraGram that adds ghost mode, deleted message recovery, and various other features. Loaded at runtime via DEX injection.
