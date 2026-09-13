@@ -131,32 +131,15 @@ public class ProcessUpdates extends XC_MethodHook {
             return false;
         }
 
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
-            org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;
-            long did = org.telegram.messenger.DialogObject.getPeerDialogId(outbox.peer);
-            if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {
+        if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {
+            if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
+                org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;
+                long did = org.telegram.messenger.DialogObject.getPeerDialogId(outbox.peer);
                 ReExteraDb.get().saveReadEventAsync(did, outbox.max_id);
-            }
-            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && did > 0) {
-                int now = (int) (System.currentTimeMillis() / 1000L);
-                ReExteraDb.get().saveLastOnlineAsync(did, now);
-                triggerUIUpdate(currentAccount);
-            }
-        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) {
-            org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox outbox2 = (org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) update;
-            long did = -outbox2.channel_id;
-            if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {
+            } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) {
+                org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox outbox2 = (org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) update;
+                long did = -outbox2.channel_id;
                 ReExteraDb.get().saveReadEventAsync(did, outbox2.max_id);
-            }
-        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEncryptedMessagesRead) {
-            org.telegram.tgnet.tl.TL_update.TL_updateEncryptedMessagesRead readEncrypted = (org.telegram.tgnet.tl.TL_update.TL_updateEncryptedMessagesRead) update;
-            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline()) {
-                TLRPC.EncryptedChat chat = MessagesController.getInstance(currentAccount).getEncryptedChat(readEncrypted.chat_id);
-                if (chat != null && chat.user_id > 0) {
-                    int now = (int) (System.currentTimeMillis() / 1000L);
-                    ReExteraDb.get().saveLastOnlineAsync(chat.user_id, now);
-                    triggerUIUpdate(currentAccount);
-                }
             }
         }
         if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline()) {
@@ -172,23 +155,21 @@ public class ProcessUpdates extends XC_MethodHook {
                 int onlineDate = 0;
                 if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-                    if (newMsg.message != null && !(newMsg.message instanceof TLRPC.TL_messageEmpty) && !newMsg.message.out) {
+                    if (newMsg.message != null && !(newMsg.message instanceof TLRPC.TL_messageEmpty)) {
                         onlineUserId = getFromId(newMsg.message);
                         onlineDate = newMsg.message.date;
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-                    if (newMsg2.message != null && !(newMsg2.message instanceof TLRPC.TL_messageEmpty) && !newMsg2.message.out) {
+                    if (newMsg2.message != null && !(newMsg2.message instanceof TLRPC.TL_messageEmpty)) {
                         onlineUserId = getFromId(newMsg2.message);
                         onlineDate = newMsg2.message.date;
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateEditMessage editMsg = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
-                    if (editMsg.message != null && !(editMsg.message instanceof TLRPC.TL_messageEmpty) && !editMsg.message.out) {
-                        if (editMsg.message.edit_date > 0) {
-                            onlineUserId = getFromId(editMsg.message);
-                            onlineDate = editMsg.message.edit_date;
-                        }
+                    if (editMsg.message != null && !(editMsg.message instanceof TLRPC.TL_messageEmpty)) {
+                        onlineUserId = getFromId(editMsg.message);
+                        onlineDate = editMsg.message.edit_date != 0 ? editMsg.message.edit_date : editMsg.message.date;
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) {
                     org.telegram.tgnet.tl.TL_update.TL_updateUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) update;
@@ -241,13 +222,10 @@ public class ProcessUpdates extends XC_MethodHook {
     }
 
     private void processEditedMessage(final TLRPC.Message message, final int currentAccount) {
-        if (message == null || message.out) {
+        if (!ni.shikatu.re_extera.settings.Settings.getSaveEditedMessages()) {
             return;
         }
         final long did = MessageUtils.getDialogIdFromMessage(message);
-        if (did == 0) {
-            return;
-        }
         if (!ni.shikatu.re_extera.settings.Settings.getSaveBotChats()) {
             org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.MessagesController.getInstance(currentAccount).getUser(did);
             if (user != null && user.bot) {
@@ -258,19 +236,13 @@ public class ProcessUpdates extends XC_MethodHook {
             @Override
             public void run() {
                 MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
-                if (oldObj != null && !oldObj.isOut() && oldObj.messageOwner != null) {
-                    String oldText = oldObj.messageOwner.message != null ? oldObj.messageOwner.message : "";
-                    String newText = message.message != null ? message.message : "";
-                    boolean textChanged = !oldText.equals(newText);
-                    boolean editDateChanged = message.edit_date != 0 && message.edit_date != oldObj.messageOwner.edit_date;
-                    boolean mediaChanged = (oldObj.messageOwner.media == null && message.media != null) ||
-                                           (oldObj.messageOwner.media != null && message.media == null);
-                    if (textChanged || editDateChanged || mediaChanged) {
-                        if (!redb.messageHasSavedEdits(did, message.id)) {
-                            redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
-                        }
-                        redb.saveNewVersionMessageAsync(did, message.id, message);
+                boolean shouldTrack = oldObj != null && (!oldObj.isOut() || ni.shikatu.re_extera.settings.Settings.getSaveSelfEdits());
+                if (shouldTrack) {
+                    if (!redb.messageHasSavedEdits(did, message.id)) {
+                        redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
                     }
+                    redb.saveNewVersionMessageAsync(did, message.id, message);
+                    ni.shikatu.re_extera.hooks.chatmessagecell.EditHistoryInlineHelper.invalidate(did, message.id);
                 }
             }
         });
