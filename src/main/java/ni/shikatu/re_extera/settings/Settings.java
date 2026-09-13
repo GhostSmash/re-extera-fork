@@ -4,7 +4,7 @@ import android.content.SharedPreferences;
 import ni.shikatu.re_extera.Main;
 
 public final class Settings {
-    public static final String PREFS_NAME = "re_extera";
+    public static final String PREFS_NAME = "re_extera_ghostsmash_fork";
     private static volatile SharedPreferences cachedPrefs;
 
     private Settings() {
@@ -275,6 +275,14 @@ public final class Settings {
 
     public static void setSaveEditedMessages(boolean v) {
         putBool("save_edited_messages", v);
+    }
+
+    public static boolean getSaveSelfEdits() {
+        return getBool("save_self_edits", false);
+    }
+
+    public static void setSaveSelfEdits(boolean v) {
+        putBool("save_self_edits", v);
     }
 
     public static boolean getSaveManuallyDeleted() {
