@@ -102,21 +102,91 @@ class Plugin(BasePlugin):
             return
         self.loader.check_updates_now()
 
+    def _scan_local_dex_files(self, max_results=30):
+        # Сканируем типичные общедоступные папки, где пользователь мог
+        # положить .dex вручную (Download и вся внешняя память) - рекурсивно,
+        # т.к. файл может лежать в подпапке. Ограничиваем глубину и общее
+        # число найденных файлов, чтобы не зависнуть на устройствах с очень
+        # большим объёмом файлов на внешнем хранилище.
+        search_roots = [
+            "/storage/emulated/0/Download",
+            "/storage/emulated/0/Downloads",
+            "/storage/emulated/0",
+        ]
+        seen_paths = set()
+        found = []
+        for root in search_roots:
+            if not os.path.isdir(root):
+                continue
+            for dirpath, dirnames, filenames in os.walk(root):
+                # Не лезем в системные/чужие директории приложений - экономим время и избегаем permission-шума.
+                dirnames[:] = [d for d in dirnames if not d.startswith(".") and d not in ("Android",)]
+                for name in filenames:
+                    if name.lower().endswith(".dex"):
+                        full_path = os.path.join(dirpath, name)
+                        if full_path in seen_paths:
+                            continue
+                        seen_paths.add(full_path)
+                        try:
+                            mtime = os.path.getmtime(full_path)
+                            size = os.path.getsize(full_path)
+                        except Exception:
+                            continue
+                        found.append((full_path, mtime, size))
+                if len(found) >= max_results * 3:
+                    break
+        # Дополнительно всегда проверяем классический фиксированный путь LOCAL_DEX_PATH,
+        # даже если он вне вышеперечисленных корней сканирования.
+        if os.path.exists(LOCAL_DEX_PATH) and LOCAL_DEX_PATH not in seen_paths:
+            try:
+                found.append((LOCAL_DEX_PATH, os.path.getmtime(LOCAL_DEX_PATH), os.path.getsize(LOCAL_DEX_PATH)))
+            except Exception:
+                pass
+        found.sort(key=lambda t: t[1], reverse=True)
+        return found[:max_results]
+
     def _on_install_file(self):
         if self.loader is None:
             return
-        if os.path.exists(LOCAL_DEX_PATH):
-            try:
-                with open(LOCAL_DEX_PATH, 'rb') as f:
-                    dex_bytes = f.read()
-                self.loader.start_from_bytes(dex_bytes)
-                BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
-                self.log("Reloaded from local file")
-            except Exception as e:
-                self.log(f"Install from file failed: {e}")
-                BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
-        else:
+
+        def do_scan():
+            results = self._scan_local_dex_files()
+            AndroidUtilities.runOnUIThread(UIRunnable(lambda: self._show_dex_file_picker(results)))
+
+        BulletinHelper.show_info(_localize("scanning_files"), get_last_fragment())
+        threading.Thread(target=do_scan).start()
+
+    def _show_dex_file_picker(self, results):
+        if not results:
             BulletinHelper.show_info(_localize("file_not_found"), get_last_fragment())
+            return
+
+        import datetime
+        labels = []
+        for full_path, mtime, size in results:
+            date_str = datetime.datetime.fromtimestamp(mtime).strftime("%d.%m.%Y %H:%M")
+            size_kb = size / 1024.0
+            short_path = full_path
+            if len(short_path) > 40:
+                short_path = "..." + short_path[-37:]
+            labels.append(f"{short_path}\n{date_str} • {size_kb:.0f} KB")
+
+        def on_click(bld, idx):
+            bld.dismiss()
+            self._install_dex_from_path(results[idx][0])
+
+        self._show_list_dialog(_localize("select_dex_file"), labels, on_click)
+
+    def _install_dex_from_path(self, path):
+        try:
+            with open(path, 'rb') as f:
+                dex_bytes = f.read()
+            self.loader.start_from_bytes(dex_bytes)
+            BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
+            self.log(f"Reloaded from local file: {path}")
+        except Exception as e:
+            self.log(f"Install from file failed: {e}")
+            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
 
     def _on_copy_logs(self):
         try:

@@ -32,6 +32,8 @@ def _localize(key):
         "update_channel":  ("Канал обновлений",      "Канал оновлень",          "Update channel"),
         "select_version":  ("Выбрать версию",        "Вибрати версію",          "Select Version"),
         "dex_settings":    ("Настройки DEX",         "Налаштування DEX",        "DEX Settings"),
+        "scanning_files":  ("Поиск .dex файлов...",  "Пошук .dex файлів...",    "Scanning for .dex files..."),
+        "select_dex_file": ("Выберите файл DEX",     "Виберіть файл DEX",       "Select DEX file"),
     }
     idx = 0 if lang == "ru" else (1 if lang == "uk" else 2)
     return strings[key][idx]
