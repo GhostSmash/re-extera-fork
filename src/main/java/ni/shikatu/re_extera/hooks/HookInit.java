@@ -218,6 +218,21 @@ public final class HookInit {
         tryHookByArgCount("MessagesController.putUser(2arg)", MessagesController.class, "putUser", 2, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUserHook());
         tryHookByArgCount("MessagesController.putUser(3arg)", MessagesController.class, "putUser", 3, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUserHook());
         tryHookByArgCount("MessagesController.putUsers(premium)", MessagesController.class, "putUsers", 2, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.PutUsersHook());
+        // Патч на запись покрывает только момент, когда объект КЛАДЁТСЯ в кэш.
+        // Если Telegram читает уже закэшированный объект в обход этих точек
+        // (холодный старт из локальной БД, долгий фон и т.д.), патч слетает
+        // до следующего события записи - отсюда нестабильность "премиум то
+        // есть, то нет". Хук на сам геттер патчит объект при каждом чтении.
+        try {
+            tryHook("MessagesController.getUser(premium)", MessagesController.class, "getUser", new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.GetUserHook(), Long.class);
+        } catch (Throwable ignored) {
+        }
+        tryHookByArgCount("UserConfig.getCurrentUser(premium)", UserConfig.class, "getCurrentUser", 0, new ni.shikatu.re_extera.hooks.userconfig.LocalPremiumPatch.GetCurrentUserHook());
+
+        // Инлайн-цитата "Изменено с: ..." над отредактированным сообщением.
+        // 2 перегрузки setMessageObject (5 и 6 параметров) - хукаем обе.
+        tryHookByArgCount("ChatMessageCell.setMessageObject(5arg)", ChatMessageCell.class, "setMessageObject", 5, new ni.shikatu.re_extera.hooks.chatmessagecell.EditHistoryInlineHelper.SetMessageObjectHook());
+        tryHookByArgCount("ChatMessageCell.setMessageObject(6arg)", ChatMessageCell.class, "setMessageObject", 6, new ni.shikatu.re_extera.hooks.chatmessagecell.EditHistoryInlineHelper.SetMessageObjectHook());
         try {
             Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
             tryHook("WindowManagerImpl.addView", clazz, "addView", new WindowManagerImpl(), View.class, ViewGroup.LayoutParams.class);
