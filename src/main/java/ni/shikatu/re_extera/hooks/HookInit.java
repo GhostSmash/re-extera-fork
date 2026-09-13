@@ -206,9 +206,16 @@ public final class HookInit {
         tryHookByArgCount("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", 4, new UpdateDialogsWithDeletedMessages());
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
-        if (anyAccountIsPremium()) {
-            Settings.setLocalPremium(false);
-        }
+        // ВРЕМЕННО ОТКЛЮЧЕНО: эта защита (гасить локальный премиум, если у юзера
+        // "уже есть" настоящий) сама путалась с собственным патчем через
+        // getCurrentUser() и создавала цикл сброса - см. историю в LocalPremiumPatch.
+        // Даже после фикса на рефлексию поведение осталось нестабильным
+        // (статус слетает через несколько перезаходов). Отключаем полностью,
+        // пока не протестируем логику отдельно, изолированно от остального
+        // премиум-патча - см. anyAccountIsPremium() ниже, помечен как TODO.
+        // if (anyAccountIsPremium()) {
+        //     Settings.setLocalPremium(false);
+        // }
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
 
         // "Локальный премиум": одного подмена isPremium() недостаточно, т.к. UI
@@ -312,6 +319,13 @@ public final class HookInit {
      * патч как "настоящий премиум" -> гасит настройку -> статус пропадает.
      * Читаем flags2 напрямую через рефлексию в обход хука, чтобы увидеть
      * сырое серверное значение, а не то, что подделали сами.
+     */
+    /**
+     * TODO: временно не используется (см. HookInit.startIntercepting, вызов
+     * закомментирован). Прежде чем включать обратно, нужно протестировать
+     * ЭТУ функцию отдельно и надёжно, изолированно от остального премиум-
+     * патча - желательно на билде, где сам премиум-патч выключен, чтобы
+     * увидеть чистый результат без взаимного влияния.
      */
     private static boolean anyAccountIsPremium() {
         TLRPC.User user;
