@@ -301,15 +301,43 @@ public final class HookInit {
         tryHook("AppNavigationPreferencesActivity.resetToDefault", AppNavigationPreferencesActivity.class, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
     }
 
+    /**
+     * ВАЖНО: раньше эта проверка вызывала cfg.getCurrentUser(), но это тот же
+     * самый метод, который патчит LocalPremiumPatch.GetCurrentUserHook - то
+     * есть при включённом локальном премиуме эта функция получала уже
+     * ПОДДЕЛАННЫЙ объект с user.premium=true, принимала его за настоящий
+     * премиум и сама же выключала Settings.setLocalPremium(false) сразу после
+     * своего включения. Возникал порочный круг: включил -> первый биндинг
+     * патчит объект -> при следующем запуске эта проверка видит свой же
+     * патч как "настоящий премиум" -> гасит настройку -> статус пропадает.
+     * Читаем flags2 напрямую через рефлексию в обход хука, чтобы увидеть
+     * сырое серверное значение, а не то, что подделали сами.
+     */
     private static boolean anyAccountIsPremium() {
         TLRPC.User user;
         for (int i = 0; i < 16; i++) {
             UserConfig cfg = UserConfig.getInstance(i);
-            if (cfg != null && cfg.isClientActivated() && (user = cfg.getCurrentUser()) != null && user.premium) {
+            if (cfg != null && cfg.isClientActivated() && (user = getRawCurrentUser(cfg)) != null && user.premium) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static java.lang.reflect.Field rawCurrentUserField;
+
+    private static TLRPC.User getRawCurrentUser(UserConfig cfg) {
+        try {
+            if (rawCurrentUserField == null) {
+                rawCurrentUserField = UserConfig.class.getDeclaredField("currentUser");
+                rawCurrentUserField.setAccessible(true);
+            }
+            return (TLRPC.User) rawCurrentUserField.get(cfg);
+        } catch (Throwable e) {
+            // Фолбэк на обычный геттер, если поле переименовали между версиями -
+            // хуже (снова может словить свой же патч), но не хуже чем было раньше.
+            return cfg.getCurrentUser();
+        }
     }
 
     public void onUnload() {
