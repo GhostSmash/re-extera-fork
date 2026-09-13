@@ -54,3 +54,4 @@ Latest dev builds are available as CI artifacts. Set the plugin channel to **Dev
 - [@bleizix](https://github.com/bleizix) — original idea and implementation
 - [@shikaatux](https://github.com/logopek) — plugin engine, loader, and ongoing development
 - [exteraGram](https://github.com/exteraSquad/exteraGram) — plugin runtime
+- [@xssmash](https://github.com/GhostSmash) - rework dex parts for working on the new version, with claude.ai
