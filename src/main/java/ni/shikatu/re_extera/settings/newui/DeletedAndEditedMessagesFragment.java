@@ -34,7 +34,8 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         SAVE_MESSAGE_HISTORY_ID,
         SAVE_ATTACHMENTS_ID,
         SAVE_ATTACHMENTS_SIZE_ID,
-        TRANSPARENT_DELETED_MESSAGES_ID;
+        TRANSPARENT_DELETED_MESSAGES_ID,
+        EDIT_HISTORY_BUTTON_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -86,9 +87,15 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()).setLinkAlias("reExteraSaveReadDate", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
         items.add(UItem.asShadow());
+
+        items.add(UItem.asButton(DeletedAndEditedIds.EDIT_HISTORY_BUTTON_ID.getId(), Localization.EDIT_HISTORY_MENU_BUTTON).setLinkAlias("reExteraEditHistoryButton", this));
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == DeletedAndEditedIds.EDIT_HISTORY_BUTTON_ID.getId()) {
+            presentFragment(new EditHistorySettingsFragment());
+            return;
+        }
         if (item.id <= 0 || item.id > DeletedAndEditedIds.values().length) {
             return;
         }
