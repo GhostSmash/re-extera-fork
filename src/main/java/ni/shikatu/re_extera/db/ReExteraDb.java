@@ -30,17 +30,6 @@ public final class ReExteraDb {
     private final Helper helper;
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, Boolean> filterExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
-    private final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<Integer>> deletedKeysCache = new java.util.concurrent.ConcurrentHashMap<>();
-
-    private java.util.Set<Integer> getOrCreateDeletedSet(long did) {
-        java.util.Set<Integer> set = deletedKeysCache.get(did);
-        if (set == null) {
-            java.util.Set<Integer> newSet = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
-            java.util.Set<Integer> oldSet = deletedKeysCache.putIfAbsent(did, newSet);
-            set = oldSet != null ? oldSet : newSet;
-        }
-        return set;
-    }
 
     public static synchronized ReExteraDb init(Context context) {
         if (instance == null) {
@@ -69,30 +58,8 @@ public final class ReExteraDb {
             @Override
             public void run() {
                 loadFilterExceptionsCache();
-                loadDeletedKeysCache();
             }
         });
-    }
-
-    private void loadDeletedKeysCache() {
-        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
-        android.database.Cursor c = null;
-        try {
-            c = db.rawQuery("SELECT did, mid FROM deleted_keys", null);
-            if (c.moveToFirst()) {
-                do {
-                    long did = c.getLong(0);
-                    int mid = c.getInt(1);
-                    getOrCreateDeletedSet(did).add(mid);
-                } while (c.moveToNext());
-            }
-        } catch (Throwable e) {
-            ni.shikatu.re_extera.Main.log("Failed to load deletedKeysCache: %s", e.getMessage());
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-        }
     }
 
     private void loadFilterExceptionsCache() {
@@ -147,7 +114,6 @@ public final class ReExteraDb {
     }
 
     public void putDeletedMessageAsync(final long did, final int mid) {
-        getOrCreateDeletedSet(did).add(mid);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -205,7 +171,6 @@ public final class ReExteraDb {
         if (mids == null || mids.isEmpty()) {
             return;
         }
-        getOrCreateDeletedSet(did).addAll(mids);
         final ArrayList<Integer> copy = new ArrayList<>(mids);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
@@ -216,18 +181,11 @@ public final class ReExteraDb {
     }
 
     public boolean messageIsDeleted(long did, int mid) {
-        java.util.Set<Integer> set = deletedKeysCache.get(did);
-        if (set != null && set.contains(mid)) {
-            return true;
-        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
             Cursor c = db.rawQuery("SELECT 1 FROM deleted_keys WHERE did=? AND mid=? LIMIT 1", new String[]{String.valueOf(did), String.valueOf(mid)});
             try {
                 boolean zMoveToFirst = c.moveToFirst();
-                if (zMoveToFirst) {
-                    getOrCreateDeletedSet(did).add(mid);
-                }
                 if (c != null) {
                     c.close();
                 }
@@ -249,9 +207,6 @@ public final class ReExteraDb {
     }
 
     public boolean messageIsDeleted(MessageObject msg) {
-        if (msg == null) {
-            return false;
-        }
         return messageIsDeleted(msg.getDialogId(), msg.getId());
     }
 
@@ -284,10 +239,6 @@ public final class ReExteraDb {
     }
 
     public ArrayList<Integer> allMessageIdsByDid(long did) {
-        java.util.Set<Integer> set = deletedKeysCache.get(did);
-        if (set != null && !set.isEmpty()) {
-            return new ArrayList<>(set);
-        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<Integer> result = new ArrayList<>();
         try {
@@ -318,10 +269,6 @@ public final class ReExteraDb {
     public void clearMessages(long did, List<Integer> mids) {
         if (mids == null || mids.isEmpty()) {
             return;
-        }
-        java.util.Set<Integer> set = deletedKeysCache.get(did);
-        if (set != null) {
-            set.removeAll(mids);
         }
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
@@ -1119,8 +1066,6 @@ public final class ReExteraDb {
     }
 
     public void clearDatabaseOnly() {
-        deletedKeysCache.clear();
-        lastOnlineCache.clear();
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
         try {
@@ -1138,6 +1083,78 @@ public final class ReExteraDb {
         }
     }
 
+    /** Полностью очищает только историю правок сообщений, не трогая остальные таблицы (удалёнки, read-события и т.д.). */
+    public void clearMessageEditsOnly() {
+        SQLiteDatabase db = this.helper.getWritableDatabase();
+        try {
+            db.delete("message_edits", null, null);
+        } catch (Exception e) {
+            Main.log("clearMessageEditsOnly error: %s", e.getMessage());
+        }
+    }
+
+    public void clearMessageEditsOnlyAsync(final Runnable onDone) {
+        postToDbThread(new Runnable() {
+            @Override
+            public final void run() {
+                clearMessageEditsOnly();
+                if (onDone != null) {
+                    android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                    mainHandler.post(onDone);
+                }
+            }
+        });
+    }
+
+    /** Простая пара (количество отслеживаемых сообщений с историей, суммарный размер BLOB в байтах) для UItem-статистики в UI. */
+    public static final class MessageEditsStats {
+        public final int distinctMessageCount;
+        public final long totalBytes;
+
+        public MessageEditsStats(int distinctMessageCount, long totalBytes) {
+            this.distinctMessageCount = distinctMessageCount;
+            this.totalBytes = totalBytes;
+        }
+    }
+
+    public MessageEditsStats getMessageEditsStats() {
+        SQLiteDatabase db = this.helper.getReadableDatabase();
+        int distinctCount = 0;
+        long totalBytes = 0;
+        try {
+            Cursor c = db.rawQuery("SELECT COUNT(DISTINCT did || ':' || mid), COALESCE(SUM(LENGTH(data)), 0) FROM message_edits", null);
+            try {
+                if (c.moveToFirst()) {
+                    distinctCount = c.getInt(0);
+                    totalBytes = c.getLong(1);
+                }
+            } finally {
+                c.close();
+            }
+        } catch (Exception e) {
+            Main.log("getMessageEditsStats error: %s", e.getMessage());
+        }
+        return new MessageEditsStats(distinctCount, totalBytes);
+    }
+
+    public void getMessageEditsStatsAsync(final java.util.function.Consumer<MessageEditsStats> callback) {
+        postToDbThread(new Runnable() {
+            @Override
+            public final void run() {
+                final MessageEditsStats stats = getMessageEditsStats();
+                if (callback != null) {
+                    android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.accept(stats);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     public void pruneStaleEntries() {
         SQLiteDatabase db = this.helper.getWritableDatabase();
         long cutoff = System.currentTimeMillis() - DELETED_KEYS_TTL_MS;
@@ -1148,8 +1165,6 @@ public final class ReExteraDb {
                 int removed = st.executeUpdateDelete();
                 if (removed > 0) {
                     Main.log("pruneStaleEntries: removed %d old deleted_keys entries", Integer.valueOf(removed));
-                    deletedKeysCache.clear();
-                    loadDeletedKeysCache();
                 }
                 if (st != null) {
                     st.close();
