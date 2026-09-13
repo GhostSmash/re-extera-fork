@@ -1,12 +1,12 @@
 <img src="images/logo.png" width="150" align="left"/>
 
-re:extera
+**Re:Extera**
 *[Licensed under the GNU General Public License v3.0](LICENSE)*
 
 Plugin for exteraGram that adds ghost mode, deleted message recovery, and various other features. Loaded at runtime via DEX injection.
 
-[![Channel](https://img.shields.io/badge/Channel-Telegram-blue.svg)](https://t.me/shikaatuProjectsLog)
-[![Download](https://img.shields.io/badge/Download-latest-green.svg)](https://github.com/fossSquad/re-extera/releases/latest)
+[![Channel](https://img.shields.io/badge/Channel-Telegram-blue.svg)](https://t.me/ghost_smash)
+[![Download](https://img.shields.io/badge/Download-latest-green.svg)](https://github.com/GhostSmash/re-extera-fork/releases/latest)
 
 ### Features
 - **Ghost mode** — hide online status, typing indicator, read receipts, and story views
@@ -15,6 +15,7 @@ Plugin for exteraGram that adds ghost mode, deleted message recovery, and variou
 - **Shadowban** — hide specific user's messages or entire dialogs
 - **Local Premium** — unlock premium-like features locally
 - **Filters** — advanced message filtering
+- **Edit History** — saves the history of message edits in chats
 
 ### Screenshots
 | | | | |
