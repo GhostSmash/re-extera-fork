@@ -70,6 +70,7 @@ public class Localization {
     public static String INFINITY_STARS;
     public static String LEAVE_BLANK_FOR_RECYCLE;
     public static String LOCAL_PREMIUM;
+    public static String LOCAL_PREMIUM_RESTART_NOTICE;
     public static String MESSAGE_HISTORY;
     public static String MESSAGE_HISTORY_TITLE;
     public static String MESSAGE_HISTORY_TOGGLE;
@@ -259,6 +260,7 @@ public class Localization {
             GHOST_MODE_DISABLE = "Выключить призрака";
             ADD_SETTINGS_TO_DRAWER = "Настройки в боковом меню";
             LOCAL_PREMIUM = "Локальный премиум";
+            LOCAL_PREMIUM_RESTART_NOTICE = "Локальный премиум включён, перезапустите приложение для применения";
             CANT_USE_WITH_PREMIUM = "Нельзя использовать с премиум аккаунтом";
             RESTART_APP = "Перезапустить приложение";
             RESTART_APP_ABOUT = "Это решает 99% всех проблем";
@@ -398,6 +400,7 @@ public class Localization {
             GHOST_MODE_DISABLE = "Вимкнути привида";
             ADD_SETTINGS_TO_DRAWER = "Налаштування в бічному меню";
             LOCAL_PREMIUM = "Локальний преміум";
+            LOCAL_PREMIUM_RESTART_NOTICE = "Локальний преміум увімкнено, перезапустіть застосунок для застосування";
             CANT_USE_WITH_PREMIUM = "Не можна використовувати з преміум акаунтом";
             RESTART_APP = "Перезапустити додаток";
             RESTART_APP_ABOUT = "Це вирішує 99% всіх проблем";
@@ -537,6 +540,7 @@ public class Localization {
         GHOST_MODE_DISABLE = "Disable ghost";
         ADD_SETTINGS_TO_DRAWER = "Settings in side menu";
         LOCAL_PREMIUM = "Local Premium";
+        LOCAL_PREMIUM_RESTART_NOTICE = "Local Premium enabled, restart the app to apply";
         CANT_USE_WITH_PREMIUM = "Can't use with premium account";
         RESTART_APP = "Restart app";
         RESTART_APP_ABOUT = "This solves 99% of all problems";
