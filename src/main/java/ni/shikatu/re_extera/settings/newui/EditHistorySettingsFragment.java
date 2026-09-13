@@ -22,6 +22,7 @@ import org.telegram.ui.Components.UniversalAdapter;
  * сохранять ли собственные правки).
  */
 public class EditHistorySettingsFragment extends BasePreferencesActivityExtended {
+    private boolean isExpanded;
     private boolean statsLoaded;
     private int trackedMessageCount;
     private long storageBytes;
@@ -42,35 +43,36 @@ public class EditHistorySettingsFragment extends BasePreferencesActivityExtended
     }
 
     private UItem toggleUItem() {
+        // Клик по самому чекбоксу (первый OnClickListener в конструкторе) переключает
+        // саму настройку. item.clickCallback - отдельный обработчик клика по строке/
+        // стрелке разворачивания, меняющий только видимость доп. пунктов. Раньше оба
+        // делали одно и то же (переключали настройку) - отсюда визуальный сбой:
+        // виджет получал два конфликтующих действия на разные части себя же.
         UItem item = UItem.asExteraExpandableSwitch(EditHistoryIds.TOGGLE_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE, null, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onToggleClicked();
+                Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
+                if (Settings.getSaveEditedMessages()) {
+                    refreshStats();
+                }
+                EditHistorySettingsFragment.this.listView.adapter.update(true);
             }
         });
         item.setChecked(Settings.getSaveEditedMessages());
-        item.setCollapsed(!Settings.getSaveEditedMessages());
+        item.setCollapsed(!this.isExpanded);
         item.clickCallback = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onToggleClicked();
+                EditHistorySettingsFragment.this.isExpanded = !EditHistorySettingsFragment.this.isExpanded;
+                EditHistorySettingsFragment.this.listView.adapter.update(true);
             }
         };
         return item;
     }
 
-    private void onToggleClicked() {
-        boolean newValue = !Settings.getSaveEditedMessages();
-        Settings.setSaveEditedMessages(newValue);
-        if (newValue) {
-            refreshStats();
-        }
-        this.listView.adapter.update(true);
-    }
-
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(toggleUItem().setLinkAlias("reExteraEditHistoryToggle", this));
-        if (Settings.getSaveEditedMessages()) {
+        if (this.isExpanded) {
             items.add(UItem.asCheck(EditHistoryIds.SAVE_SELF_EDITS_ID.getId(), Localization.SAVE_SELF_EDITS).setChecked(Settings.getSaveSelfEdits()).setLinkAlias("reExteraSaveSelfEdits", this));
             items.add(UItem.asShadow());
 
